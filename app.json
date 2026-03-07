@@ -1,0 +1,27 @@
+{
+  "expo": {
+    "name": "Arisole",
+    "slug": "arisole",
+    "version": "1.0.0",
+    "scheme": "arisole",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.arisole.app"
+    },
+    "android": {
+      "package": "com.arisole.app"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-camera"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

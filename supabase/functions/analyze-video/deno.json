@@ -1,0 +1,5 @@
+{
+  "imports": {
+    "npm:@google/generative-ai@0.24.0": "npm:@google/generative-ai@0.24.0"
+  }
+}

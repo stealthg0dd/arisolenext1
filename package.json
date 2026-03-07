@@ -1,0 +1,43 @@
+{
+  "name": "arisole",
+  "version": "1.0.0",
+  "private": true,
+  "main": "expo-router/entry",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
+    "web": "expo start --web",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint . --ext .ts,.tsx"
+  },
+  "dependencies": {
+    "@expo/vector-icons": "^14.0.2",
+    "@react-native-async-storage/async-storage": "^2.1.1",
+    "@react-navigation/native": "^6.1.18",
+    "@supabase/supabase-js": "^2.49.1",
+    "expo": "^53.0.0",
+    "expo-auth-session": "^6.2.0",
+    "expo-camera": "^16.1.4",
+    "expo-constants": "^17.1.2",
+    "expo-linking": "^7.1.2",
+    "expo-router": "^5.0.2",
+    "expo-secure-store": "^14.2.3",
+    "expo-status-bar": "^2.2.3",
+    "expo-video": "^2.0.1",
+    "expo-web-browser": "^14.2.0",
+    "react": "19.0.0",
+    "react-native": "0.79.2",
+    "react-native-safe-area-context": "^5.4.0",
+    "react-native-screens": "^4.11.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.10",
+    "@types/react": "^19.0.10",
+    "@typescript-eslint/eslint-plugin": "^8.27.0",
+    "@typescript-eslint/parser": "^8.27.0",
+    "eslint": "^9.21.0",
+    "eslint-config-expo": "^9.2.0",
+    "typescript": "^5.8.2"
+  }
+}
