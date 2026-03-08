@@ -14,6 +14,19 @@ const AuthContext = createContext<AuthContextShape>({
   loading: true
 });
 
+function isGuestAllowedRoute(segments: string[]): boolean {
+  const first = segments[0];
+  if (first === undefined || first === "") return true;
+  if (first === "onboarding-survey") return true;
+  if (first === "(auth)") return true;
+  if (first === "(tabs)" && segments[1] === "record") return true;
+  return false;
+}
+
+function isProtectedTabsRoute(segments: string[]): boolean {
+  return segments[0] === "(tabs)" && segments[1] !== "record";
+}
+
 export function AuthProvider({ children }: PropsWithChildren) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
@@ -42,13 +55,24 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
     const inAuthGroup = segments[0] === "(auth)";
 
-    if (!session && !inAuthGroup) {
-      router.replace("/(auth)/sign-in");
+    if (session) {
+      if (inAuthGroup) {
+        router.replace("/(tabs)");
+      }
       return;
     }
 
-    if (session && inAuthGroup) {
-      router.replace("/(tabs)");
+    if (!session) {
+      if (inAuthGroup) {
+        return;
+      }
+      if (isProtectedTabsRoute(segments)) {
+        router.replace("/");
+        return;
+      }
+      if (!isGuestAllowedRoute(segments)) {
+        router.replace("/");
+      }
     }
   }, [loading, segments, router, session]);
 

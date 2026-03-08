@@ -14,14 +14,27 @@
       "bundleIdentifier": "com.arisole.app"
     },
     "android": {
-      "package": "com.arisole.app"
+      "package": "com.arisole.app",
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "plugins": [
       "expo-router",
-      "expo-camera"
+      "expo-camera",
+      "expo-secure-store",
+      "expo-video",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "b475d9b2-016d-429b-9861-8a9ce431bcb1"
+      }
     }
   }
 }

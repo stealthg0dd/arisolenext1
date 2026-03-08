@@ -1,3 +1,4 @@
+import * as Clipboard from "expo-clipboard";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 
@@ -6,11 +7,26 @@ import { useAuth } from "@/providers/AuthProvider";
 import { fetchMyPosts, fetchMyProfile } from "@/services/profile";
 import { Post, UserProfile } from "@/types/database";
 
+const REFERRALS_NEEDED = 3;
+const REFERRAL_BASE = "https://arisole.app";
+
 export default function ProfileScreen() {
   const { session } = useAuth();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
+  const [referralCount] = useState(0);
+  const [copied, setCopied] = useState(false);
+
+  const referralLink = session?.user.id
+    ? `${REFERRAL_BASE}?ref=${encodeURIComponent(session.user.id)}`
+    : REFERRAL_BASE;
+
+  const copyReferralLink = async () => {
+    await Clipboard.setStringAsync(referralLink);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   useEffect(() => {
     const run = async () => {
@@ -56,6 +72,34 @@ export default function ProfileScreen() {
           <Text style={styles.statValue}>{profile?.level ?? 1}</Text>
           <Text style={styles.statLabel}>Level</Text>
         </View>
+      </View>
+
+      <View style={styles.waitlistCard}>
+        <View style={styles.waitlistHeader}>
+          <Text style={styles.waitlistBadge}>PREMIUM</Text>
+          <Text style={styles.waitlistTitle}>Arisole Smart Insole</Text>
+          <Text style={styles.waitlistSub}>Skip the line. Refer 3 friends.</Text>
+        </View>
+        <View style={styles.waitlistRankRow}>
+          <Text style={styles.waitlistRankLabel}>Your waitlist rank</Text>
+          <Text style={styles.waitlistRankValue}>#{String((profile?.points ?? 0) % 9000 + 1000)}</Text>
+        </View>
+        <View style={styles.waitlistProgressWrap}>
+          <View style={styles.waitlistProgressBar}>
+            <View
+              style={[
+                styles.waitlistProgressFill,
+                { width: `${(referralCount / REFERRALS_NEEDED) * 100}%` }
+              ]}
+            />
+          </View>
+          <Text style={styles.waitlistProgressText}>
+            {referralCount}/{REFERRALS_NEEDED} referrals — Skip the Line
+          </Text>
+        </View>
+        <Pressable style={styles.copyButton} onPress={copyReferralLink}>
+          <Text style={styles.copyButtonText}>{copied ? "Copied!" : "Copy Referral Link"}</Text>
+        </Pressable>
       </View>
 
       <Text style={styles.postsTitle}>My posts</Text>
@@ -114,6 +158,81 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     color: "#4B5563"
+  },
+  waitlistCard: {
+    marginBottom: 20,
+    backgroundColor: "#0f172a",
+    borderRadius: 20,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: "rgba(148, 163, 184, 0.2)",
+    overflow: "hidden"
+  },
+  waitlistHeader: {
+    marginBottom: 16
+  },
+  waitlistBadge: {
+    fontSize: 10,
+    letterSpacing: 2,
+    color: "#fbbf24",
+    fontWeight: "800",
+    marginBottom: 6
+  },
+  waitlistTitle: {
+    fontSize: 20,
+    fontWeight: "800",
+    color: "#f8fafc"
+  },
+  waitlistSub: {
+    fontSize: 13,
+    color: "#94a3b8",
+    marginTop: 4
+  },
+  waitlistRankRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 14
+  },
+  waitlistRankLabel: {
+    color: "#94a3b8",
+    fontSize: 14
+  },
+  waitlistRankValue: {
+    fontSize: 22,
+    fontWeight: "800",
+    color: "#e2e8f0"
+  },
+  waitlistProgressWrap: {
+    marginBottom: 16
+  },
+  waitlistProgressBar: {
+    height: 8,
+    backgroundColor: "rgba(148, 163, 184, 0.3)",
+    borderRadius: 4,
+    overflow: "hidden",
+    marginBottom: 8
+  },
+  waitlistProgressFill: {
+    height: "100%",
+    backgroundColor: "#22c55e",
+    borderRadius: 4
+  },
+  waitlistProgressText: {
+    fontSize: 12,
+    color: "#94a3b8"
+  },
+  copyButton: {
+    backgroundColor: "rgba(248, 250, 252, 0.12)",
+    borderWidth: 1,
+    borderColor: "rgba(248, 250, 252, 0.2)",
+    borderRadius: 12,
+    paddingVertical: 12,
+    alignItems: "center"
+  },
+  copyButtonText: {
+    color: "#f8fafc",
+    fontWeight: "700"
   },
   postsTitle: {
     fontSize: 18,

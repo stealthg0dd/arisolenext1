@@ -1,8 +1,9 @@
+import { FlashList } from "@shopify/flash-list";
 import { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, RefreshControl, StyleSheet, Text, View } from "react-native";
 
 import { CommentModal } from "@/components/CommentModal";
-import { PostCard } from "@/components/PostCard";
+import { FeedVideoCard } from "@/components/FeedVideoCard";
 import { useAuth } from "@/providers/AuthProvider";
 import { fetchFeed, subscribeToFeedRealtime, toggleLike } from "@/services/feed";
 import { FeedPost } from "@/types/database";
@@ -114,19 +115,29 @@ export default function FeedScreen() {
     );
   }
 
+  const renderItem = useCallback(
+    ({ item }: { item: FeedPost }) => (
+      <FeedVideoCard post={item} onLike={onLike} onCommentPress={setActivePost} />
+    ),
+    [onLike]
+  );
+
+  const flashListProps = {
+    data: posts,
+    estimatedItemSize: 380,
+    keyExtractor: (item: FeedPost) => item.id,
+    renderItem,
+    onEndReached: loadMore,
+    onEndReachedThreshold: 0.3,
+    refreshControl: <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />,
+    ListHeaderComponent: <Text style={styles.header}>Today&apos;s movement</Text>,
+    ListFooterComponent: loadingMore ? <ActivityIndicator style={{ marginVertical: 16 }} /> : null,
+    ListEmptyComponent: <Text style={styles.empty}>No posts yet. Record your first walk.</Text>
+  };
+
   return (
     <View style={styles.container}>
-      <FlatList
-        data={posts}
-        keyExtractor={(item: FeedPost) => item.id}
-        renderItem={({ item }: { item: FeedPost }) => <PostCard post={item} onLike={onLike} onCommentPress={setActivePost} />}
-        onEndReached={loadMore}
-        onEndReachedThreshold={0.3}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-        ListHeaderComponent={<Text style={styles.header}>Today&apos;s movement</Text>}
-        ListFooterComponent={loadingMore ? <ActivityIndicator style={{ marginVertical: 16 }} /> : null}
-        ListEmptyComponent={<Text style={styles.empty}>No posts yet. Record your first walk.</Text>}
-      />
+      <FlashList {...(flashListProps as any)} />
 
       <CommentModal open={!!activePost} post={activePost} userId={userId ?? ""} onClose={() => setActivePost(null)} />
     </View>
