@@ -19,11 +19,7 @@
         "image": "ubuntu-22.04-jdk-17-ndk-r26b"
       },
       "env": {
-        "NPM_CONFIG_LEGACY_PEER_DEPS": "true",
-        "EXPO_PUBLIC_SUPABASE_URL": "https://ufceuqgqddwfrjybokes.supabase.co",
-        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVmY2V1cWdxZGR3ZnJqeWJva2VzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkzODkxMTYsImV4cCI6MjA4NDk2NTExNn0.OS_NI6n-HgcvnFWbMzoO8y4rV1kUwO0diq0OuUWnYD8",
-        "EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY": "pk_test_51T8yPdBRIiNWx6UBDNqMPozwyKE87TpX7OyjXR7MdGYvPr8QYNLwQxVwTWqD04olsnRDbJ5BYRDv3cM8Z7dq7xDc00GIdwVuLB",
-        "EXPO_PUBLIC_GEMINI_API_KEY": "AIzaSyCS-LYrVkuTYMytmS8125u1wWoKVmVmGAY"
+        "NPM_CONFIG_LEGACY_PEER_DEPS": "true"
       }
     },
     "production": {
