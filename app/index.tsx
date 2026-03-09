@@ -19,11 +19,26 @@ export default function LandingScreen() {
         <Text style={styles.sub}>Scan your walk. Unlock your Aura Score.</Text>
         <Pressable
           style={styles.cta}
-          onPress={() => router.push("/onboarding-survey")}
+          onPress={() => {
+            try {
+              router.push("/onboarding-survey");
+            } catch (e) {
+              console.error("Navigation to survey failed:", e);
+            }
+          }}
         >
           <Text style={styles.ctaText}>SCAN MY MOVEMENT</Text>
         </Pressable>
-        <Pressable style={styles.signInLink} onPress={() => router.push("/(auth)/sign-in")}>
+        <Pressable
+          style={styles.signInLink}
+          onPress={() => {
+            try {
+              router.push("/(auth)/sign-in");
+            } catch (e) {
+              console.error("Navigation to sign-in failed:", e);
+            }
+          }}
+        >
           <Text style={styles.signInLinkText}>Already have an account? Sign in</Text>
         </Pressable>
       </View>

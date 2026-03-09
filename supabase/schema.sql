@@ -13,13 +13,14 @@ create table if not exists public.user_profiles (
   created_at timestamptz not null default now()
 );
 
--- 2. posts
+-- 2. posts (video_url points to gait-videos bucket; gait_score + analysis_json from AI)
 create table if not exists public.posts (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references public.user_profiles(id) on delete cascade,
   video_url text not null,
   caption text,
-  ai_analysis jsonb,
+  gait_score numeric,
+  analysis_json jsonb,
   likes_count int not null default 0,
   created_at timestamptz not null default now()
 );
@@ -107,18 +108,27 @@ create trigger likes_count_delete
 after delete on public.likes
 for each row execute function public.sync_post_likes_count();
 
--- Create profile row automatically on first sign up.
+-- Create profile row automatically on first sign up (Google OAuth: full_name, name).
 create or replace function public.handle_new_user()
 returns trigger
 language plpgsql
 security definer
 as $$
+declare
+  v_username text;
 begin
+  v_username := coalesce(
+    new.raw_user_meta_data ->> 'username',
+    new.raw_user_meta_data ->> 'full_name',
+    new.raw_user_meta_data ->> 'name',
+    split_part(coalesce(new.email, 'user'), '@', 1)
+  );
+  if v_username is null or trim(v_username) = '' then
+    v_username := 'user_' || left(new.id::text, 8);
+  end if;
+
   insert into public.user_profiles (id, username)
-  values (
-    new.id,
-    coalesce(new.raw_user_meta_data ->> 'username', split_part(new.email, '@', 1))
-  )
+  values (new.id, v_username)
   on conflict (id) do nothing;
 
   return new;
@@ -176,6 +186,12 @@ begin
   end if;
 end;
 $$;
+
+-- profiles view (alias for user_profiles, linked to auth.users)
+create or replace view public.profiles as
+select id, username, avatar, streak_days, points, level, last_check_in_date, created_at
+from public.user_profiles;
+grant select on public.profiles to authenticated;
 
 -- RLS
 alter table public.user_profiles enable row level security;

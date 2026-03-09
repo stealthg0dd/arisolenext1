@@ -1,3 +1,4 @@
+import { Platform } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createClient } from "@supabase/supabase-js";
 
@@ -12,7 +13,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
     .filter(Boolean)
     .join(", ");
   throw new Error(
-    `Missing Supabase environment variable(s): ${missing}. Copy .env.example to .env and set values.`
+    `Missing Supabase environment variable(s): ${missing}. Check your .env file.`
   );
 }
 
@@ -21,6 +22,9 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     storage: AsyncStorage,
     autoRefreshToken: true,
     persistSession: true,
-    detectSessionInUrl: false
+    // On Android, setting this to true helps the internal listener 
+    // catch the redirect from the system browser
+    detectSessionInUrl: Platform.OS === 'android',
+    flowType: 'pkce',
   }
 });

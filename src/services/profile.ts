@@ -4,7 +4,7 @@ import { Post, UserProfile } from "@/types/database";
 export async function fetchMyProfile(userId: string) {
   const { data, error } = await supabase
     .from("user_profiles")
-    .select("id, username, avatar, streak_days, points, level, created_at")
+    .select("id, username, avatar, streak_days, points, level, created_at, referral_code, referral_count, user_interests, is_premium")
     .eq("id", userId)
     .single();
 
@@ -18,7 +18,7 @@ export async function fetchMyProfile(userId: string) {
 export async function fetchMyPosts(userId: string) {
   const { data, error } = await supabase
     .from("posts")
-    .select("id, user_id, video_url, caption, ai_analysis, likes_count, created_at")
+    .select("id, user_id, video_url, caption, gait_score, analysis_json, likes_count, created_at, duration_seconds")
     .eq("user_id", userId)
     .order("created_at", { ascending: false });
 

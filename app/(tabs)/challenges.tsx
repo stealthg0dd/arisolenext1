@@ -9,14 +9,16 @@ export default function ChallengesScreen() {
   const [selected, setSelected] = useState<string | null>(null);
   const [leaders, setLeaders] = useState<Array<{ username: string; score: number }>>([]);
   const [loading, setLoading] = useState(true);
+  const [schemaError, setSchemaError] = useState(false);
 
   useEffect(() => {
     fetchActiveChallenges()
       .then((rows) => {
         setChallenges(rows);
-        if (rows[0]) {
-          setSelected(rows[0].id);
-        }
+        if (rows[0]) setSelected(rows[0].id);
+      })
+      .catch((err) => {
+        if ((err?.message ?? "").includes("schema cache")) setSchemaError(true);
       })
       .finally(() => setLoading(false));
   }, []);
@@ -31,10 +33,19 @@ export default function ChallengesScreen() {
     });
   }, [selected]);
 
-  if (loading) {
+  if (loading && !schemaError) {
     return (
       <View style={styles.centered}>
         <ActivityIndicator size="large" />
+      </View>
+    );
+  }
+
+  if (schemaError) {
+    return (
+      <View style={[styles.centered, { padding: 24 }]}>
+        <Text style={styles.schemaErrorTitle}>Database setup required</Text>
+        <Text style={styles.schemaErrorText}>Run supabase/schema.sql in Supabase SQL Editor.</Text>
       </View>
     );
   }
@@ -140,6 +151,16 @@ const styles = StyleSheet.create({
   },
   empty: {
     marginTop: 20,
+    textAlign: "center",
+    color: "#6B7280"
+  },
+  schemaErrorTitle: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: "#0E3B1E",
+    marginBottom: 8
+  },
+  schemaErrorText: {
     textAlign: "center",
     color: "#6B7280"
   }

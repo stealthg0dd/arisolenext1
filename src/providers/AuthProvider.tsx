@@ -3,6 +3,7 @@ import { useRouter, useSegments } from "expo-router";
 import { createContext, PropsWithChildren, useContext, useEffect, useMemo, useState } from "react";
 
 import { supabase } from "@/lib/supabase";
+import { registerPushToken } from "@/services/notifications";
 
 type AuthContextShape = {
   session: Session | null;
@@ -19,6 +20,7 @@ function isGuestAllowedRoute(segments: string[]): boolean {
   if (first === undefined || first === "") return true;
   if (first === "onboarding-survey") return true;
   if (first === "(auth)") return true;
+  if (first === "auth" && segments[1] === "callback") return true;
   if (first === "(tabs)" && segments[1] === "record") return true;
   return false;
 }
@@ -37,10 +39,16 @@ export function AuthProvider({ children }: PropsWithChildren) {
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
       setLoading(false);
+      if (data.session?.user.id) {
+        registerPushToken(data.session.user.id).catch(() => {});
+      }
     });
 
     const { data: subscription } = supabase.auth.onAuthStateChange((_event, nextSession) => {
       setSession(nextSession);
+      if (nextSession?.user.id) {
+        registerPushToken(nextSession.user.id).catch(() => {});
+      }
     });
 
     return () => {

@@ -1,5 +1,5 @@
 import { BlurView } from "expo-blur";
-import { CameraView, useCameraPermissions } from "expo-camera";
+import { CameraView, useCameraPermissions, useMicrophonePermissions } from "expo-camera";
 import { useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -13,21 +13,28 @@ import {
   View
 } from "react-native";
 
+import * as Haptics from "expo-haptics";
+import { LightingCheck } from "@/components/LightingCheck";
+import { PoseGuideOverlay } from "@/components/PoseGuideOverlay";
 import { PressureMap } from "@/components/PressureMap";
 import { PaywallModal } from "@/components/PaywallModal";
 import { useAuth } from "@/providers/AuthProvider";
+import { useSimulateInsole } from "@/providers/SimulateInsoleProvider";
+import { usePendingChallenge } from "@/providers/PendingChallengeProvider";
 import { usePendingVideo } from "@/providers/PendingVideoProvider";
 import { isTrialExpired } from "@/lib/trial";
 import { fetchMyProfile } from "@/services/profile";
-import { analyzeVideoWithGemini, createPost, uploadVideo } from "@/services/record";
+import { analyzeVideoWithGemini, createPost, FALLBACK_ANALYSIS, uploadVideo } from "@/services/record";
 import { AIAnalysis } from "@/types/database";
 import { UserProfile } from "@/types/database";
 
 export default function RecordScreen() {
-  const [permission, requestPermission] = useCameraPermissions();
+  const [cameraPermission, requestCameraPermission] = useCameraPermissions();
+  const [microphonePermission, requestMicrophonePermission] = useMicrophonePermissions();
   const cameraRef = useRef<CameraView | null>(null);
   const { session } = useAuth();
   const { pendingVideo, setPendingVideo, clearPendingVideo } = usePendingVideo();
+  const { pendingChallengeId, clearPendingChallenge } = usePendingChallenge();
   const router = useRouter();
 
   const [recording, setRecording] = useState(false);
@@ -38,6 +45,10 @@ export default function RecordScreen() {
   const [resultOverlay, setResultOverlay] = useState<{ analysis: AIAnalysis } | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [paywallVisible, setPaywallVisible] = useState(false);
+  const [cooldownEndsAt, setCooldownEndsAt] = useState<number | null>(null);
+  const [cooldownSeconds, setCooldownSeconds] = useState(0);
+  const pendingVideoProcessingRef = useRef(false);
+  const { simulateDark } = useSimulateInsole();
 
   useEffect(() => {
     if (!session?.user.id) {
@@ -47,30 +58,99 @@ export default function RecordScreen() {
     fetchMyProfile(session.user.id).then(setProfile).catch(() => setProfile(null));
   }, [session?.user.id]);
 
-  const trialExpired = profile ? isTrialExpired(profile.created_at) : false;
-
-  // After login: process pending guest video
+  // Request microphone when camera is granted (needed for recordAsync on Android)
   useEffect(() => {
-    if (!session?.user.id || !pendingVideo) {
+    if (cameraPermission?.granted && !microphonePermission?.granted) {
+      requestMicrophonePermission();
+    }
+  }, [cameraPermission?.granted, microphonePermission?.granted]);
+
+  const trialExpired = profile ? isTrialExpired(profile.created_at) : false;
+  const isCooldown = cooldownEndsAt != null && Date.now() < cooldownEndsAt;
+  const recordDisabled = busy || isCooldown;
+
+  // Cooldown countdown tick
+  useEffect(() => {
+    if (!cooldownEndsAt) return;
+    const tick = () => {
+      const remaining = Math.ceil((cooldownEndsAt - Date.now()) / 1000);
+      if (remaining <= 0) {
+        setCooldownEndsAt(null);
+        setCooldownSeconds(0);
+        return;
+      }
+      setCooldownSeconds(remaining);
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [cooldownEndsAt]);
+
+  // After login: process pending guest video (single invocation guard)
+  useEffect(() => {
+    if (!session?.user.id || !pendingVideo || pendingVideoProcessingRef.current) {
       return;
     }
+    pendingVideoProcessingRef.current = true;
     const run = async () => {
       setBusy(true);
       try {
         const publicUrl = await uploadVideo(pendingVideo.uri, session.user.id);
-        const analysis = await analyzeVideoWithGemini(publicUrl);
+        let analysis: AIAnalysis;
+        try {
+          const result = await analyzeVideoWithGemini(publicUrl, session.user.id);
+          if (result && "isValidContent" in result && result.isValidContent === false) {
+            Alert.alert(
+              "Wrong content",
+              result.message || "Please take video of your feet movement in closeup or footwear only."
+            );
+            clearPendingVideo();
+            return;
+          }
+          const { isValidContent: __, ...rest } = result as AIAnalysis & { isValidContent?: boolean };
+          analysis = rest as AIAnalysis;
+        } catch (err) {
+          const useFallback = await new Promise<boolean>((resolve) => {
+            Alert.alert(
+              "AI is taking a breather",
+              "We'll update your posture score in a few minutes! Your video can still be posted.",
+              [
+                { text: "Cancel", style: "cancel", onPress: () => resolve(false) },
+                { text: "Post Anyway", onPress: () => resolve(true) },
+              ]
+            );
+          });
+          if (!useFallback) {
+            clearPendingVideo();
+            return;
+          }
+          analysis = FALLBACK_ANALYSIS;
+        }
+        const { isValidContent: __, ...analysisForPost } = analysis as AIAnalysis & { isValidContent?: boolean };
+        const pendingDurationMs = (pendingVideo as { duration?: number }).duration;
+        const durationSeconds = pendingDurationMs != null ? Math.round(pendingDurationMs / 1000) : 30;
         await createPost({
           userId: session.user.id,
           videoUrl: publicUrl,
           caption: pendingVideo.caption,
-          analysis
+          analysis: analysisForPost as AIAnalysis,
+          durationSeconds,
+          challengeId: pendingChallengeId ?? undefined
         });
         clearPendingVideo();
-        setResultOverlay({ analysis });
+        clearPendingChallenge();
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        setResultOverlay({ analysis: analysisForPost as AIAnalysis });
+        setCooldownEndsAt(Date.now() + 30000);
       } catch (err: unknown) {
-        Alert.alert("Couldn't unlock result", (err as Error).message ?? "Please try again.");
+        const msg = (err as Error).message ?? "";
+        Alert.alert(
+          msg.includes("Rate limit") ? "Rate Limit Reached" : "Couldn't unlock result",
+          msg || "Please try again."
+        );
       } finally {
         setBusy(false);
+        pendingVideoProcessingRef.current = false;
       }
     };
     run();
@@ -86,6 +166,17 @@ export default function RecordScreen() {
       return;
     }
 
+    if (!microphonePermission?.granted) {
+      const result = await requestMicrophonePermission();
+      if (!result.granted) {
+        Alert.alert(
+          "Microphone Required for Video",
+          "Video recording needs microphone access. Please enable it in Settings to record with audio."
+        );
+        return;
+      }
+    }
+
     setRecording(true);
 
     try {
@@ -98,9 +189,10 @@ export default function RecordScreen() {
         return;
       }
 
-      const durationSec = ((video as { uri: string; duration?: number }).duration ?? 0) / 1000;
-      if (durationSec < 10) {
-        Alert.alert("Keep going", "Record at least 10 seconds for meaningful feedback.");
+      // Duration may be missing on Android; only enforce if explicitly provided and too short
+      const durationMs = (video as { uri: string; duration?: number }).duration;
+      if (durationMs != null && durationMs > 0 && durationMs < 5000) {
+        Alert.alert("Keep going", "Record at least 5 seconds of foot movement for meaningful feedback.");
         setRecording(false);
         return;
       }
@@ -114,17 +206,59 @@ export default function RecordScreen() {
 
       setBusy(true);
       const publicUrl = await uploadVideo(video.uri, session.user.id);
-      const analysis = await analyzeVideoWithGemini(publicUrl);
+      let analysis: AIAnalysis;
+      try {
+        const result = await analyzeVideoWithGemini(publicUrl, session.user.id);
+        if (result && "isValidContent" in result && result.isValidContent === false) {
+          Alert.alert(
+            "Wrong content",
+            result.message || "Please take video of your feet movement in closeup or footwear only."
+          );
+          setBusy(false);
+          return;
+        }
+        const { isValidContent: _, ...rest } = result as AIAnalysis & { isValidContent?: boolean };
+        analysis = rest as AIAnalysis;
+      } catch (err) {
+        const msg = (err as Error).message ?? "";
+        const useFallback = await new Promise<boolean>((resolve) => {
+          Alert.alert(
+            "AI is taking a breather",
+            "We'll update your posture score in a few minutes! Your video can still be posted.",
+            [
+              { text: "Cancel", style: "cancel", onPress: () => resolve(false) },
+              { text: "Post Anyway", onPress: () => resolve(true) },
+            ]
+          );
+        });
+        if (!useFallback) {
+          setBusy(false);
+          return;
+        }
+        analysis = FALLBACK_ANALYSIS;
+      }
+      const analysisForPost = analysis;
+      const durationSeconds =
+        durationMs != null ? Math.round(durationMs / 1000) : 30;
       await createPost({
         userId: session.user.id,
         videoUrl: publicUrl,
         caption,
-        analysis
+        analysis: analysisForPost as AIAnalysis,
+        durationSeconds,
+        challengeId: pendingChallengeId ?? undefined
       });
       setCaption("");
-      setResultOverlay({ analysis });
+      clearPendingChallenge();
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      setResultOverlay({ analysis: analysisForPost as AIAnalysis });
+      setCooldownEndsAt(Date.now() + 30000);
     } catch (error: unknown) {
-      Alert.alert("Record failed", (error as Error).message ?? "Please try again.");
+      const msg = (error as Error).message ?? "";
+      Alert.alert(
+        msg.includes("Rate limit") ? "Rate Limit Reached" : "Record failed",
+        msg || "Please try again."
+      );
     } finally {
       setRecording(false);
       setBusy(false);
@@ -132,11 +266,16 @@ export default function RecordScreen() {
   };
 
   const onUnlockSignIn = () => {
+    if (!guestVideoUri) return;
     setGuestTeaserVisible(false);
-    setPendingVideo({ uri: guestVideoUri!, caption });
+    setPendingVideo({ uri: guestVideoUri, caption });
     setGuestVideoUri(null);
     setCaption("");
-    router.push("/(auth)/sign-in");
+    try {
+      router.push("/(auth)/sign-in");
+    } catch (e) {
+      console.error("Navigation to sign-in failed:", e);
+    }
   };
 
   const onDismissGuestTeaser = () => {
@@ -149,16 +288,31 @@ export default function RecordScreen() {
     setRecording(false);
   };
 
-  if (!permission) {
+  if (!cameraPermission) {
     return <View style={styles.centered} />;
   }
 
-  if (!permission.granted) {
+  if (!cameraPermission.granted) {
     return (
       <View style={styles.centered}>
         <Text style={styles.info}>Camera permission is required to record your movement.</Text>
-        <Pressable style={styles.button} onPress={requestPermission}>
-          <Text style={styles.buttonText}>Grant Permission</Text>
+        <Pressable style={styles.button} onPress={requestCameraPermission}>
+          <Text style={styles.buttonText}>Grant Camera Permission</Text>
+        </Pressable>
+      </View>
+    );
+  }
+
+  if (!microphonePermission) {
+    return <View style={styles.centered} />;
+  }
+
+  if (!microphonePermission.granted) {
+    return (
+      <View style={styles.centered}>
+        <Text style={styles.info}>Microphone permission is required for video recording.</Text>
+        <Pressable style={styles.button} onPress={requestMicrophonePermission}>
+          <Text style={styles.buttonText}>Grant Microphone Permission</Text>
         </Pressable>
       </View>
     );
@@ -166,7 +320,12 @@ export default function RecordScreen() {
 
   return (
     <View style={styles.container}>
-      <CameraView style={styles.camera} facing="back" ref={cameraRef} mode="video" />
+      <View style={styles.cameraWrap}>
+        <CameraView style={styles.camera} facing="back" ref={cameraRef} mode="video" />
+        <PoseGuideOverlay />
+      </View>
+
+      <LightingCheck isDark={simulateDark} />
 
       <TextInput
         value={caption}
@@ -175,15 +334,26 @@ export default function RecordScreen() {
         style={styles.input}
       />
 
-      <Pressable style={styles.button} onPress={recording ? onStop : onRecord} disabled={busy}>
+      <Pressable
+        style={styles.button}
+        onPress={recording ? onStop : onRecord}
+        disabled={recording ? false : recordDisabled}
+      >
         {busy ? (
           <ActivityIndicator color="white" />
+        ) : isCooldown ? (
+          <Text style={styles.buttonText}>
+            {recording ? "Stop" : `Wait ${cooldownSeconds}s`}
+          </Text>
         ) : (
           <Text style={styles.buttonText}>{recording ? "Stop" : "Record & Upload"}</Text>
         )}
       </Pressable>
 
-      <Text style={styles.note}>Records up to 30 seconds. Sign in to unlock AI Aura Score.</Text>
+      {isCooldown && !busy && (
+        <Text style={styles.cooldownNote}>Please wait before your next analysis.</Text>
+      )}
+      <Text style={styles.note}>Record 5+ seconds of foot movement. Sign in to unlock AI Aura Score.</Text>
 
       {/* Guest teaser: blurred HUD + bottom sheet */}
       <Modal visible={guestTeaserVisible} transparent animationType="fade">
@@ -195,9 +365,9 @@ export default function RecordScreen() {
           </View>
           <View style={styles.bottomSheet}>
             <Text style={styles.sheetTitle}>Unlock your AI Aura Score</Text>
-            <Text style={styles.sheetBody}>Sign in to see your results and share with the community.</Text>
+            <Text style={styles.sheetBody}>Sign in to save your analysis and share with the community.</Text>
             <Pressable style={styles.cyberButton} onPress={onUnlockSignIn}>
-              <Text style={styles.cyberButtonText}>UNLOCK</Text>
+              <Text style={styles.cyberButtonText}>SAVE & SIGN IN</Text>
             </Pressable>
             <Pressable onPress={onDismissGuestTeaser}>
               <Text style={styles.dismissText}>Maybe later</Text>
@@ -251,11 +421,16 @@ const styles = StyleSheet.create({
     color: "#374151",
     marginBottom: 12
   },
-  camera: {
+  cameraWrap: {
     flex: 1,
     borderRadius: 16,
     overflow: "hidden",
-    marginBottom: 12
+    marginBottom: 12,
+    position: "relative",
+  },
+  camera: {
+    flex: 1,
+    width: "100%",
   },
   input: {
     borderWidth: 1,
@@ -280,6 +455,12 @@ const styles = StyleSheet.create({
     marginTop: 10,
     color: "#6B7280",
     textAlign: "center"
+  },
+  cooldownNote: {
+    marginTop: 8,
+    color: "#D97706",
+    textAlign: "center",
+    fontWeight: "600"
   },
   teaserOverlay: {
     flex: 1,

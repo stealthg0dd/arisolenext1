@@ -11,6 +11,9 @@ type Props = {
 };
 
 export function PostCard({ post, onLike, onCommentPress }: Props) {
+  const analysis = post.analysis_json ?? (post as { ai_analysis?: { postureScore: number; message?: string } }).ai_analysis;
+  const score = post.gait_score ?? analysis?.postureScore;
+
   const player = useVideoPlayer(post.video_url, (videoPlayer) => {
     videoPlayer.loop = true;
     videoPlayer.muted = true;
@@ -27,10 +30,10 @@ export function PostCard({ post, onLike, onCommentPress }: Props) {
 
       {!!post.caption && <Text style={styles.caption}>{post.caption}</Text>}
 
-      {post.ai_analysis && (
+      {analysis && (
         <View style={styles.aiBox}>
-          <Text style={styles.aiHeadline}>Posture {post.ai_analysis.postureScore}/100</Text>
-          <Text style={styles.aiMessage}>{post.ai_analysis.message}</Text>
+          <Text style={styles.aiHeadline}>Posture {score ?? analysis.postureScore}/100</Text>
+          <Text style={styles.aiMessage}>{analysis.message}</Text>
         </View>
       )}
 

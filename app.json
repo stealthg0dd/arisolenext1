@@ -5,19 +5,22 @@
     "version": "1.0.0",
     "scheme": "arisole",
     "orientation": "portrait",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "dark",
     "assetBundlePatterns": [
       "**/*"
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.arisole.app"
+      "bundleIdentifier": "com.arisole.app",
+      "merchantId": "merchant.com.stealthgodd.arisole"
     },
     "android": {
-      "package": "com.arisole.app",
+      "package": "com.stealthgodd.arisole",
       "permissions": [
-        "android.permission.CAMERA",
-        "android.permission.RECORD_AUDIO"
+        "CAMERA",
+        "RECORD_AUDIO",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE"
       ]
     },
     "plugins": [
@@ -25,7 +28,32 @@
       "expo-camera",
       "expo-secure-store",
       "expo-video",
-      "expo-web-browser"
+      "expo-web-browser",
+      "expo-font",
+      [
+        "expo-notifications",
+        {
+          "color": "#8311d4"
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "kotlinVersion": "1.9.24",
+            "minSdkVersion": 24,
+            "compileSdkVersion": 34,
+            "targetSdkVersion": 34
+          }
+        }
+      ],
+      [
+        "@stripe/stripe-react-native",
+        {
+          "merchantIdentifier": "merchant.com.stealthgodd.arisole",
+          "enableGooglePay": true
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

@@ -36,8 +36,11 @@ export function FeedVideoCard({ post, onLike, onCommentPress }: Props) {
     videoPlayer.muted = true;
   });
 
+  const analysis = post.analysis_json ?? (post as { ai_analysis?: { postureScore: number; message?: string } }).ai_analysis;
+  const score = post.gait_score ?? analysis?.postureScore;
+
   const onShareToStory = async () => {
-    if (!post.ai_analysis) {
+    if (!analysis) {
       Alert.alert("No analysis", "This post has no AI analysis to share.");
       return;
     }
@@ -46,7 +49,7 @@ export function FeedVideoCard({ post, onLike, onCommentPress }: Props) {
       const capture = viewShotRef.current?.capture;
       const uri = capture ? await capture.call(viewShotRef.current) : null;
       if (uri) {
-        await Share.share({ url: uri, message: `My Aura Score: ${post.ai_analysis.postureScore}` });
+        await Share.share({ url: uri, message: `My Aura Score: ${score ?? analysis.postureScore}` });
       }
     } catch (e) {
       Alert.alert("Share failed", (e as Error).message);
@@ -66,18 +69,25 @@ export function FeedVideoCard({ post, onLike, onCommentPress }: Props) {
 
       {!!post.caption && <Text style={styles.caption}>{post.caption}</Text>}
 
-      {post.ai_analysis && (
+      {analysis && (
         <View style={styles.aiRow}>
           <View style={styles.aiBox}>
-            <Text style={styles.aiHeadline}>Posture {post.ai_analysis.postureScore}/100</Text>
-            <Text style={styles.aiMessage}>{post.ai_analysis.message}</Text>
+            <Text style={styles.aiHeadline}>Posture {score ?? analysis.postureScore}/100</Text>
+            <Text style={styles.aiMessage}>{analysis.message}</Text>
           </View>
           <ViewShot
             ref={viewShotRef}
             options={{ format: "png", quality: 1, width: CARD_WIDTH, height: Math.round(CARD_WIDTH * 1.2) }}
             style={styles.hiddenShot}
           >
-            <AuraCardContent analysis={post.ai_analysis} username={post.author.username} />
+            <AuraCardContent
+              analysis={{
+                postureScore: score ?? analysis.postureScore ?? 0,
+                insights: (analysis as AIAnalysis).keyInsights ?? (analysis as AIAnalysis).insights ?? [],
+                message: analysis.message ?? ""
+              }}
+              username={post.author.username}
+            />
           </ViewShot>
         </View>
       )}
@@ -93,7 +103,7 @@ export function FeedVideoCard({ post, onLike, onCommentPress }: Props) {
           <Text style={styles.actionText}>Comment</Text>
         </Pressable>
 
-        {post.ai_analysis && (
+        {analysis && (
           <Pressable style={styles.actionButton} onPress={onShareToStory} disabled={sharing}>
             <Ionicons name="share-social-outline" size={22} color="#116530" />
             <Text style={[styles.actionText, styles.shareText]}>{sharing ? "..." : "Share to Story"}</Text>

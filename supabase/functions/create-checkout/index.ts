@@ -51,7 +51,7 @@ Deno.serve(async (req: Request) => {
       ],
       success_url: successUrl,
       cancel_url: cancelUrl,
-      metadata: body.userId ? { userId: body.userId } : undefined
+      metadata: body.userId ? { supabase_user_id: body.userId } : undefined
     });
 
     return new Response(

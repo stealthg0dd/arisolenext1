@@ -1,8 +1,10 @@
+import Constants from "expo-constants";
 import * as WebBrowser from "expo-web-browser";
 import { makeRedirectUri } from "expo-auth-session";
-import { Link } from "expo-router";
+import { Link, useRouter } from "expo-router";
 import { useState } from "react";
 import { Alert, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import * as Linking from 'expo-linking';
 
 import { supabase } from "@/lib/supabase";
 
@@ -12,6 +14,7 @@ export default function SignInScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
+  const router = useRouter();
 
   const onSignIn = async () => {
     setBusy(true);
@@ -20,47 +23,76 @@ export default function SignInScreen() {
 
     if (error) {
       Alert.alert("Sign in failed", error.message);
+    } else {
+      router.replace("/(tabs)");
     }
   };
 
   const onGoogleSignIn = async () => {
     setBusy(true);
 
-    const redirectTo =
-      process.env.EXPO_PUBLIC_SUPABASE_REDIRECT_URI ??
-      makeRedirectUri({
-        scheme: "arisole",
-        path: "auth/callback"
-      });
+    // 1. Generate the Redirect URI dynamically based on the environment
+    // This will handle exp://192.168.x.x:8081 automatically for Expo Go
+    const redirectTo = makeRedirectUri({
+      scheme: "arisole",
+      path: "auth/callback",
+    });
 
+    if (__DEV__) {
+      console.log("Redirect URL for Supabase:", redirectTo);
+    }
+
+    // 2. Start the OAuth flow
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
         redirectTo,
-        skipBrowserRedirect: true
-      }
+        skipBrowserRedirect: true,
+      },
     });
 
     if (error || !data?.url) {
       setBusy(false);
-      Alert.alert("Google sign-in failed", error?.message ?? "No auth URL was returned.");
+      Alert.alert("Google sign-in failed", error?.message ?? "No auth URL returned.");
       return;
     }
 
-    const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
+    // 3. Open the browser and wait for the redirect back to the app
+    try {
+      const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
+      
+      if (result.type === "success" && result.url) {
+        const { access_token, refresh_token, code } = extractParams(result.url);
 
-    if (result.type === "success" && result.url) {
-      const url = new URL(result.url);
-      const code = url.searchParams.get("code");
-      if (code) {
-        const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
-        if (exchangeError) {
-          Alert.alert("Google sign-in failed", exchangeError.message);
+        if (access_token && refresh_token) {
+          const { error: sessionError } = await supabase.auth.setSession({
+            access_token,
+            refresh_token,
+          });
+          if (sessionError) throw sessionError;
+          router.replace("/(tabs)");
+        } else if (code) {
+          const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+          if (exchangeError) throw exchangeError;
+          router.replace("/(tabs)");
         }
       }
+    } catch (err: any) {
+      Alert.alert("Authentication Error", err.message);
+    } finally {
+      setBusy(false);
     }
+  };
 
-    setBusy(false);
+  // Improved param extraction for both hash and query parameters
+  const extractParams = (url: string) => {
+    const params: Record<string, string> = {};
+    const queryString = url.split('#')[1] || url.split('?')[1] || "";
+    queryString.split('&').forEach(part => {
+      const [key, value] = part.split('=');
+      if (key && value) params[key] = decodeURIComponent(value);
+    });
+    return params;
   };
 
   return (

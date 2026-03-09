@@ -2,8 +2,10 @@ import { FlashList } from "@shopify/flash-list";
 import { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, RefreshControl, StyleSheet, Text, View } from "react-native";
 
+import { ArisoleFeedCard } from "@/components/ArisoleFeedCard";
+import { ChallengesSection } from "@/components/ChallengesSection";
 import { CommentModal } from "@/components/CommentModal";
-import { FeedVideoCard } from "@/components/FeedVideoCard";
+import { Colors, FontFamily, FontWeights } from "@/constants/Colors";
 import { useAuth } from "@/providers/AuthProvider";
 import { fetchFeed, subscribeToFeedRealtime, toggleLike } from "@/services/feed";
 import { FeedPost } from "@/types/database";
@@ -18,6 +20,7 @@ export default function FeedScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [activePost, setActivePost] = useState<FeedPost | null>(null);
+  const [schemaError, setSchemaError] = useState(false);
 
   const loadInitial = useCallback(async () => {
     if (!userId) {
@@ -25,10 +28,21 @@ export default function FeedScreen() {
     }
 
     setLoading(true);
-    const result = await fetchFeed(0, userId);
-    setPosts(result.posts);
-    setCursor(result.nextCursor);
-    setLoading(false);
+    setSchemaError(false);
+    try {
+      const result = await fetchFeed(0, userId);
+      setPosts(result.posts);
+      setCursor(result.nextCursor);
+    } catch (err: unknown) {
+      const msg = (err as { message?: string })?.message ?? "";
+      if (msg.includes("schema cache") || msg.includes("PGRST205")) {
+        setSchemaError(true);
+      } else {
+        setPosts([]);
+      }
+    } finally {
+      setLoading(false);
+    }
   }, [userId]);
 
   const loadMore = async () => {
@@ -107,17 +121,28 @@ export default function FeedScreen() {
     };
   }, [loadInitial, userId]);
 
-  if (loading) {
+  if (loading && !schemaError) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" />
+        <ActivityIndicator size="large" color={Colors.accent} />
+      </View>
+    );
+  }
+
+  if (schemaError) {
+    return (
+      <View style={[styles.centered, { padding: 24 }]}>
+        <Text style={styles.schemaErrorTitle}>Database setup required</Text>
+        <Text style={styles.schemaErrorText}>
+          Run the schema in Supabase SQL Editor. See SETUP_SUPABASE.md for steps.
+        </Text>
       </View>
     );
   }
 
   const renderItem = useCallback(
     ({ item }: { item: FeedPost }) => (
-      <FeedVideoCard post={item} onLike={onLike} onCommentPress={setActivePost} />
+      <ArisoleFeedCard post={item} onLike={onLike} onCommentPress={setActivePost} />
     ),
     [onLike]
   );
@@ -125,13 +150,23 @@ export default function FeedScreen() {
   const flashListProps = {
     data: posts,
     estimatedItemSize: 380,
+    initialNumToRender: 5,
+    maxToRenderPerBatch: 3,
+    windowSize: 6,
     keyExtractor: (item: FeedPost) => item.id,
     renderItem,
     onEndReached: loadMore,
     onEndReachedThreshold: 0.3,
     refreshControl: <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />,
-    ListHeaderComponent: <Text style={styles.header}>Today&apos;s movement</Text>,
-    ListFooterComponent: loadingMore ? <ActivityIndicator style={{ marginVertical: 16 }} /> : null,
+    ListHeaderComponent: (
+      <View>
+        <Text style={styles.header}>Today&apos;s movement</Text>
+        <ChallengesSection />
+      </View>
+    ),
+    ListFooterComponent: loadingMore ? (
+      <ActivityIndicator style={{ marginVertical: 16 }} color={Colors.accent} />
+    ) : null,
     ListEmptyComponent: <Text style={styles.empty}>No posts yet. Record your first walk.</Text>
   };
 
@@ -147,24 +182,34 @@ export default function FeedScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F3F7F2"
+    backgroundColor: Colors.background,
   },
   centered: {
     flex: 1,
     alignItems: "center",
-    justifyContent: "center"
+    justifyContent: "center",
   },
   header: {
     marginTop: 12,
     marginHorizontal: 14,
     marginBottom: 2,
     fontSize: 22,
-    fontWeight: "800",
-    color: "#0E3B1E"
+    fontFamily: FontFamily.extrabold,
+    color: Colors.text,
   },
   empty: {
     textAlign: "center",
     marginTop: 28,
-    color: "#4B5563"
-  }
+    color: Colors.textMuted,
+  },
+  schemaErrorTitle: {
+    fontSize: 18,
+    fontFamily: FontFamily.extrabold,
+    color: Colors.text,
+    marginBottom: 8,
+  },
+  schemaErrorText: {
+    textAlign: "center",
+    color: Colors.textMuted,
+  },
 });

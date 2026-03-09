@@ -17,6 +17,10 @@ Arisole is a social movement tracking app: short daily walking/running clips, AI
 - Challenges tab with active challenge list + leaderboard
 - Profile tab with stats and user posts grid
 
+## ⚠️ Supabase setup required first
+
+If you see errors like `Could not find the table 'public.posts'`, you must run the database schema. See **[SETUP_SUPABASE.md](./SETUP_SUPABASE.md)** for step-by-step instructions.
+
 ## Local Setup
 
 1. Install Node.js 20+ and npm.
@@ -42,10 +46,15 @@ npm run start
 
 1. Create a Supabase project.
 2. In SQL editor, run `supabase/schema.sql`.
-3. Create a public storage bucket named `videos`.
+3. Create storage buckets: `gait-videos` (for video uploads) and `analysis-results` (for AI analysis output).
 4. Configure Auth providers:
 - Enable Email provider.
-- Enable Google provider and set redirect URI to `arisole://auth/callback`.
+- Enable Google provider.
+- In **Supabase Dashboard → Authentication → URL Configuration**, add these to **Redirect URLs**:
+  - `arisole://auth/callback` (for dev/production builds)
+  - `arisole://**`
+  - `exp://**` (for Expo Go on device — avoids "localhost refused")
+- Set **Site URL** to your production URL (e.g. `https://yourdomain.com`), not `localhost`.
 5. Deploy edge functions:
 
 ```bash

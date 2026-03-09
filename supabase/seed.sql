@@ -25,10 +25,11 @@ set username = excluded.username;
 
 insert into public.challenges (name, type, start_date, end_date, prize)
 values
-  ('7-Day Consistency Cup', 'consistency', current_date - 3, current_date + 3, 'Arisole T-Shirt'),
+  ('7-Day Posture Streak', 'streak', current_date - 2, current_date + 5, 'Arisole T-Shirt'),
+  ('Morning Mobility', 'consistency', current_date - 1, current_date + 6, 'Smart Running Socks'),
+  ('7-Day Consistency Cup', 'consistency', current_date - 3, current_date + 3, 'Premium Badge Pack'),
   ('Weekend Run Surge', 'distance', current_date - 1, current_date + 5, 'Smart Running Socks'),
-  ('Streak Sprint', 'streak', current_date - 4, current_date + 2, 'Premium Badge Pack')
-on conflict do nothing;
+  ('Streak Sprint', 'streak', current_date - 4, current_date + 2, 'Premium Badge Pack');
 
 with base_users as (
   select
@@ -68,11 +69,12 @@ with base_users as (
 slots as (
   select generate_series(1, 2) as slot
 )
-insert into public.posts (user_id, video_url, caption, ai_analysis, created_at)
+insert into public.posts (user_id, video_url, caption, gait_score, analysis_json, created_at)
 select
   bu.id,
   'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
   case when s.slot = 1 then 'Morning walk check-in' else 'Evening run progress' end,
+  68 + ((bu.rn + s.slot) % 25)::numeric,
   jsonb_build_object(
     'postureScore', 68 + ((bu.rn + s.slot) % 25),
     'insights', jsonb_build_array('Relax shoulders', 'Keep cadence steady', 'Drive arms softly'),
