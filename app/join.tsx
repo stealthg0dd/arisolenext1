@@ -4,6 +4,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect } from "react";
 import { ActivityIndicator, View } from "react-native";
 
+import { Colors } from "@/constants/Colors";
 import { REFERRAL_CODE_STORAGE_KEY } from "@/constants/referralStorage";
 
 function parseCodeFromUrl(url: string | null): string | null {
@@ -45,8 +46,8 @@ export default function JoinScreen() {
   }, [paramCode, router]);
 
   return (
-    <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#0a0e14" }}>
-      <ActivityIndicator size="large" color="#00ff9d" />
+    <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: Colors.background }}>
+      <ActivityIndicator size="large" color={Colors.accent} />
     </View>
   );
 }

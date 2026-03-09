@@ -176,7 +176,9 @@ export default function FeedScreen() {
     renderItem,
     onEndReached: loadMore,
     onEndReachedThreshold: 0.3,
-    refreshControl: <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />,
+    refreshControl: (
+      <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.accent} />
+    ),
     ListHeaderComponent: (
       <View>
         <Text style={styles.header}>Arisole Feed</Text>
@@ -238,6 +240,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 14,
     marginBottom: 12,
     fontSize: 15,
+    fontFamily: FontFamily.medium,
     color: Colors.textSecondary,
   },
   storyScroll: {
@@ -267,6 +270,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginTop: 28,
     color: Colors.textMuted,
+    fontFamily: FontFamily.medium,
   },
   schemaErrorTitle: {
     fontSize: 18,

@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 
-import { Colors } from "@/constants/Colors";
+import { Colors, FontFamily } from "@/constants/Colors";
 import { useSubscriptionStatus } from "@/hooks/useSubscriptionStatus";
 
 export default function TabsLayout() {
@@ -13,6 +13,7 @@ export default function TabsLayout() {
         headerTitleAlign: "center",
         headerStyle: { backgroundColor: Colors.background },
         headerTintColor: Colors.text,
+        headerTitleStyle: { fontFamily: FontFamily.bold, fontSize: 18 },
         tabBarActiveTintColor: Colors.primary,
         tabBarInactiveTintColor: Colors.textMuted,
         tabBarStyle: {

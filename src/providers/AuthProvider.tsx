@@ -18,6 +18,7 @@ const AuthContext = createContext<AuthContextShape>({
 function isGuestAllowedRoute(segments: string[]): boolean {
   const first = segments[0];
   if (first === undefined || first === "") return true;
+  if (first === "onboarding") return true;
   if (first === "onboarding-survey") return true;
   if (first === "(auth)") return true;
   if (first === "auth" && segments[1] === "callback") return true;

@@ -14,7 +14,7 @@ import {
 } from "react-native";
 
 import * as Haptics from "expo-haptics";
-import { Colors } from "@/constants/Colors";
+import { Colors, FontFamily } from "@/constants/Colors";
 import { LightingCheck } from "@/components/LightingCheck";
 import { PoseGuideOverlay } from "@/components/PoseGuideOverlay";
 import { PressureMap } from "@/components/PressureMap";
@@ -324,6 +324,12 @@ export default function RecordScreen() {
       <View style={styles.cameraWrap}>
         <CameraView style={styles.camera} facing="back" ref={cameraRef} mode="video" />
         <PoseGuideOverlay />
+        {recording && (
+          <View style={styles.recIndicator}>
+            <View style={styles.recDot} />
+            <Text style={styles.recText}>REC</Text>
+          </View>
+        )}
       </View>
 
       <LightingCheck isDark={simulateDark} />
@@ -332,6 +338,7 @@ export default function RecordScreen() {
         value={caption}
         onChangeText={setCaption}
         placeholder="Caption your movement"
+        placeholderTextColor={Colors.textMuted}
         style={styles.input}
       />
 
@@ -420,11 +427,38 @@ const styles = StyleSheet.create({
   info: {
     textAlign: "center",
     color: Colors.textSecondary,
-    marginBottom: 12
+    marginBottom: 12,
+    fontFamily: FontFamily.medium,
+  },
+  recIndicator: {
+    position: "absolute",
+    top: 16,
+    left: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    backgroundColor: "rgba(0,0,0,0.6)",
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Colors.error,
+  },
+  recDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "#ef4444",
+  },
+  recText: {
+    fontSize: 14,
+    fontFamily: FontFamily.extrabold,
+    color: "#ef4444",
+    letterSpacing: 2,
   },
   cameraWrap: {
     flex: 1,
-    borderRadius: 16,
+    borderRadius: 20,
     overflow: "hidden",
     marginBottom: 12,
     position: "relative",
@@ -436,33 +470,39 @@ const styles = StyleSheet.create({
   input: {
     borderWidth: 1,
     borderColor: Colors.surfaceBorder,
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     backgroundColor: Colors.surfaceCard,
-    color: Colors.text
+    color: Colors.text,
+    fontSize: 16,
+    fontFamily: FontFamily.medium,
   },
   button: {
     marginTop: 10,
     backgroundColor: Colors.primary,
-    borderRadius: 10,
+    borderRadius: 16,
     alignItems: "center",
-    paddingVertical: 12
+    paddingVertical: 14,
   },
   buttonText: {
     color: "white",
-    fontWeight: "700"
+    fontFamily: FontFamily.bold,
+    fontSize: 16,
   },
   note: {
     marginTop: 10,
     color: Colors.textMuted,
-    textAlign: "center"
+    textAlign: "center",
+    fontSize: 13,
+    fontFamily: FontFamily.medium,
   },
   cooldownNote: {
     marginTop: 8,
-    color: "#D97706",
+    color: Colors.accent,
     textAlign: "center",
-    fontWeight: "600"
+    fontFamily: FontFamily.semibold,
+    fontSize: 14,
   },
   teaserOverlay: {
     flex: 1,
@@ -477,45 +517,50 @@ const styles = StyleSheet.create({
   hudTitle: {
     fontSize: 18,
     letterSpacing: 4,
-    color: "#00ff9d",
-    fontWeight: "800"
+    color: Colors.accent,
+    fontFamily: FontFamily.extrabold,
   },
   hudSub: {
     marginTop: 8,
-    color: "rgba(255,255,255,0.7)"
+    color: Colors.textSecondary,
+    fontFamily: FontFamily.medium,
   },
   bottomSheet: {
-    backgroundColor: "#111827",
+    backgroundColor: Colors.surfaceCard,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: 24,
-    paddingBottom: 40
+    paddingBottom: 40,
+    borderWidth: 1,
+    borderColor: Colors.surfaceBorder,
   },
   sheetTitle: {
     fontSize: 20,
-    fontWeight: "800",
-    color: "#fff",
-    marginBottom: 8
+    fontFamily: FontFamily.extrabold,
+    color: Colors.text,
+    marginBottom: 8,
   },
   sheetBody: {
-    color: "#9ca3af",
-    marginBottom: 20
+    color: Colors.textSecondary,
+    marginBottom: 20,
+    fontFamily: FontFamily.medium,
   },
   cyberButton: {
-    backgroundColor: "#00ff9d",
+    backgroundColor: Colors.primary,
     paddingVertical: 14,
-    borderRadius: 12,
+    borderRadius: 16,
     alignItems: "center",
-    marginBottom: 12
+    marginBottom: 12,
   },
   cyberButtonText: {
-    color: "#0a0e14",
-    fontWeight: "800",
-    letterSpacing: 2
+    color: "white",
+    fontFamily: FontFamily.extrabold,
+    letterSpacing: 2,
   },
   dismissText: {
-    color: "#6b7280",
-    textAlign: "center"
+    color: Colors.textMuted,
+    textAlign: "center",
+    fontFamily: FontFamily.medium,
   },
   resultOverlay: {
     flex: 1,
@@ -534,14 +579,15 @@ const styles = StyleSheet.create({
   },
   resultTitle: {
     fontSize: 18,
-    fontWeight: "800",
+    fontFamily: FontFamily.extrabold,
     color: Colors.accent,
-    marginBottom: 12
+    marginBottom: 12,
   },
   resultMessage: {
     marginTop: 12,
     marginBottom: 16,
     color: Colors.text,
-    textAlign: "center"
-  }
+    textAlign: "center",
+    fontFamily: FontFamily.medium,
+  },
 });

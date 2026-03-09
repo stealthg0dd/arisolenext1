@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Arisole Record Screen</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#8311d4",
+                        "background-light": "#f7f6f8",
+                        "background-dark": "#1a1022",
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .camera-view {
+            background: linear-gradient(to bottom, rgba(26, 16, 34, 0.4), rgba(26, 16, 34, 0.1)), url('https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?auto=format&fit=crop&q=80&w=2071');
+            background-size: cover;
+            background-position: center;
+        }
+        .recording-glow {
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.6);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen flex flex-col font-display">
+<div class="relative flex-1 flex flex-col overflow-hidden camera-view" data-alt="A professional cinematic camera view of a modern interior">
+<div class="flex items-center justify-between p-6 bg-gradient-to-b from-background-dark/80 to-transparent">
+<div class="flex items-center gap-3">
+<div class="w-3 h-3 rounded-full bg-red-500 animate-pulse"></div>
+<span class="text-slate-100 font-bold tracking-wider">REC</span>
+<span class="text-slate-300 font-medium ml-2">00:42:15</span>
+</div>
+<div class="flex gap-4">
+<button class="p-2 rounded-full bg-background-dark/40 backdrop-blur-md text-slate-100">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<button class="p-2 rounded-full bg-background-dark/40 backdrop-blur-md text-slate-100">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+</div>
+<div class="flex-1 relative">
+<div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+<div class="w-64 h-64 border-2 border-primary/40 rounded-xl relative">
+<div class="absolute -top-1 -left-1 w-6 h-6 border-t-4 border-l-4 border-primary rounded-tl-md"></div>
+<div class="absolute -top-1 -right-1 w-6 h-6 border-t-4 border-r-4 border-primary rounded-tr-md"></div>
+<div class="absolute -bottom-1 -left-1 w-6 h-6 border-b-4 border-l-4 border-primary rounded-bl-md"></div>
+<div class="absolute -bottom-1 -right-1 w-6 h-6 border-b-4 border-r-4 border-primary rounded-br-md"></div>
+<div class="absolute top-4 left-4 flex items-center gap-2 bg-primary/20 backdrop-blur-sm px-3 py-1 rounded-full">
+<span class="material-symbols-outlined text-xs text-primary">target</span>
+<span class="text-[10px] font-bold text-slate-100 uppercase tracking-widest">Target Locked</span>
+</div>
+</div>
+</div>
+<div class="absolute left-6 top-1/2 -translate-y-1/2 flex flex-col gap-6">
+<div class="flex flex-col items-center gap-1">
+<div class="w-1 bg-slate-100/20 h-32 rounded-full relative overflow-hidden">
+<div class="absolute bottom-0 left-0 w-full bg-primary h-2/3 rounded-full"></div>
+</div>
+<span class="material-symbols-outlined text-slate-100 text-sm">exposure</span>
+</div>
+</div>
+</div>
+<div class="p-6 space-y-6 bg-gradient-to-t from-background-dark/90 via-background-dark/60 to-transparent">
+<div class="max-w-md mx-auto">
+<div class="flex flex-col gap-3 p-4 rounded-xl border border-primary/20 bg-background-dark/60 backdrop-blur-xl">
+<div class="flex gap-6 justify-between items-center">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">neurology</span>
+<p class="text-slate-100 text-base font-bold leading-tight">AI Tracking</p>
+</div>
+<p class="text-slate-100 text-sm font-mono">65% Processed</p>
+</div>
+<div class="h-2 rounded-full bg-primary/20 overflow-hidden">
+<div class="h-full rounded-full bg-primary" style="width: 65%;"></div>
+</div>
+<div class="flex justify-between items-center">
+<p class="text-slate-400 text-xs font-normal">Active Subject: Human_01</p>
+<label class="relative flex h-[24px] w-[44px] cursor-pointer items-center rounded-full border-none bg-slate-700 p-1 has-[:checked]:bg-primary">
+<div class="h-full w-[16px] rounded-full bg-white shadow-sm transition-all duration-200"></div>
+<input checked="" class="invisible absolute" type="checkbox"/>
+</label>
+</div>
+</div>
+</div>
+<div class="flex items-center justify-around max-w-lg mx-auto pb-4">
+<button class="flex flex-col items-center gap-2 text-slate-400 hover:text-slate-100 transition-colors">
+<div class="p-3 rounded-full bg-slate-100/10 backdrop-blur-md">
+<span class="material-symbols-outlined">grid_view</span>
+</div>
+<span class="text-[10px] font-bold uppercase tracking-tighter">Layout</span>
+</button>
+<div class="relative group">
+<div class="absolute inset-0 bg-red-500/20 rounded-full blur-xl group-hover:bg-red-500/40 transition-all"></div>
+<button class="relative flex items-center justify-center rounded-full w-20 h-20 bg-slate-100 p-1 border-4 border-background-dark group-active:scale-95 transition-transform">
+<div class="w-full h-full rounded-full bg-red-600 recording-glow flex items-center justify-center">
+<div class="w-6 h-6 bg-white rounded-sm"></div>
+</div>
+</button>
+</div>
+<button class="flex flex-col items-center gap-2 text-slate-400 hover:text-slate-100 transition-colors">
+<div class="p-3 rounded-full bg-slate-100/10 backdrop-blur-md">
+<span class="material-symbols-outlined">auto_fix_high</span>
+</div>
+<span class="text-[10px] font-bold uppercase tracking-tighter">Filters</span>
+</button>
+</div>
+</div>
+</div>
+<div class="bg-background-dark border-t border-primary/10">
+<div class="flex gap-2 px-4 pb-6 pt-2 max-w-screen-xl mx-auto">
+<a class="flex flex-1 flex-col items-center justify-center gap-1 py-2 rounded-xl text-primary" href="#">
+<span class="material-symbols-outlined text-2xl font-variation-fill">videocam</span>
+<span class="text-[10px] font-bold uppercase">Video</span>
+</a>
+<a class="flex flex-1 flex-col items-center justify-center gap-1 py-2 text-slate-500 hover:text-slate-300" href="#">
+<span class="material-symbols-outlined text-2xl">photo_library</span>
+<span class="text-[10px] font-bold uppercase">Library</span>
+</a>
+<a class="flex flex-1 flex-col items-center justify-center gap-1 py-2 text-slate-500 hover:text-slate-300" href="#">
+<span class="material-symbols-outlined text-2xl">auto_awesome</span>
+<span class="text-[10px] font-bold uppercase">Create</span>
+</a>
+<a class="flex flex-1 flex-col items-center justify-center gap-1 py-2 text-slate-500 hover:text-slate-300" href="#">
+<span class="material-symbols-outlined text-2xl">person</span>
+<span class="text-[10px] font-bold uppercase">Profile</span>
+</a>
+</div>
+</div>
+</body></html>

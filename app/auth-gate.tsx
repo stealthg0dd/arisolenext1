@@ -1,3 +1,4 @@
+import { BlurView } from "expo-blur";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
@@ -9,6 +10,7 @@ export default function AuthGateScreen() {
 
   return (
     <View style={styles.container}>
+      <BlurView intensity={60} tint="dark" style={StyleSheet.absoluteFill} />
       <View style={styles.card}>
         <Ionicons name="lock-closed" size={64} color={Colors.primary} />
         <Text style={styles.title}>Sign in to unlock</Text>
@@ -29,19 +31,20 @@ export default function AuthGateScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.6)",
+    backgroundColor: Colors.background,
     justifyContent: "center",
     alignItems: "center",
-    padding: 24
+    padding: 24,
   },
   card: {
     backgroundColor: Colors.surfaceCard,
-    borderRadius: 24,
+    borderRadius: 20,
     padding: 32,
     alignItems: "center",
     maxWidth: 340,
     borderWidth: 1,
-    borderColor: Colors.surfaceBorder
+    borderColor: Colors.surfaceBorder,
+    overflow: "hidden",
   },
   title: {
     fontSize: 22,
@@ -52,14 +55,15 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 15,
+    fontFamily: FontFamily.medium,
     color: Colors.textSecondary,
     textAlign: "center",
     lineHeight: 22,
-    marginBottom: 24
+    marginBottom: 24,
   },
   button: {
     backgroundColor: Colors.primary,
-    borderRadius: 14,
+    borderRadius: 16,
     paddingVertical: 16,
     paddingHorizontal: 32,
     width: "100%",
@@ -73,6 +77,7 @@ const styles = StyleSheet.create({
   },
   link: {
     color: Colors.textMuted,
-    fontSize: 14
-  }
+    fontSize: 14,
+    fontFamily: FontFamily.medium,
+  },
 });

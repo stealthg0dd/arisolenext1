@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 
+import { Colors, FontFamily } from "@/constants/Colors";
 import { fetchActiveChallenges, fetchChallengeLeaderboard } from "@/services/challenges";
 import { Challenge } from "@/types/database";
 
@@ -35,7 +36,7 @@ export default function ChallengesScreen() {
   if (loading && !schemaError) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" />
+        <ActivityIndicator size="large" color={Colors.accent} />
       </View>
     );
   }
@@ -71,6 +72,7 @@ export default function ChallengesScreen() {
       <FlatList
         data={leaders}
         keyExtractor={(item, index) => `${item.username}-${index}`}
+        contentContainerStyle={styles.leaderListContent}
         renderItem={({ item, index }) => (
           <View style={styles.leaderRow}>
             <Text style={styles.leaderRank}>#{index + 1}</Text>
@@ -87,80 +89,88 @@ export default function ChallengesScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F9FAFB",
-    padding: 16
+    backgroundColor: Colors.background,
+    padding: 16,
   },
   centered: {
     flex: 1,
     alignItems: "center",
-    justifyContent: "center"
+    justifyContent: "center",
   },
   title: {
     fontSize: 28,
-    fontWeight: "800",
-    color: "#0E3B1E",
-    marginBottom: 12
+    fontFamily: FontFamily.extrabold,
+    color: Colors.text,
+    marginBottom: 12,
   },
   subTitle: {
     marginTop: 20,
     marginBottom: 8,
     fontSize: 18,
-    fontWeight: "800",
-    color: "#111827"
+    fontFamily: FontFamily.extrabold,
+    color: Colors.text,
+  },
+  leaderListContent: {
+    paddingHorizontal: 0,
+    paddingBottom: 24,
   },
   challengePill: {
     borderWidth: 1,
-    borderColor: "#D1D5DB",
-    backgroundColor: "white",
+    borderColor: Colors.surfaceBorder,
+    backgroundColor: Colors.surfaceCard,
     paddingHorizontal: 14,
     paddingVertical: 10,
-    borderRadius: 999
+    borderRadius: 999,
   },
   challengeActive: {
-    borderColor: "#116530",
-    backgroundColor: "#ECFDF3"
+    borderColor: Colors.primary,
+    backgroundColor: "rgba(131, 17, 212, 0.15)",
   },
   challengeName: {
-    color: "#111827",
-    fontWeight: "700"
+    color: Colors.text,
+    fontFamily: FontFamily.bold,
   },
   challengeNameActive: {
-    color: "#0E3B1E"
+    color: Colors.primaryLight,
   },
   leaderRow: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "#E5E7EB"
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    backgroundColor: Colors.surfaceCard,
+    borderRadius: 16,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: Colors.surfaceBorder,
   },
   leaderRank: {
     width: 42,
-    color: "#6B7280",
-    fontWeight: "700"
+    color: Colors.textMuted,
+    fontFamily: FontFamily.bold,
   },
   leaderName: {
     flex: 1,
-    color: "#111827",
-    fontWeight: "700"
+    color: Colors.text,
+    fontFamily: FontFamily.bold,
   },
   leaderScore: {
-    color: "#116530",
-    fontWeight: "800"
+    color: Colors.accent,
+    fontFamily: FontFamily.extrabold,
   },
   empty: {
     marginTop: 20,
     textAlign: "center",
-    color: "#6B7280"
+    color: Colors.textMuted,
   },
   schemaErrorTitle: {
     fontSize: 18,
-    fontWeight: "800",
-    color: "#0E3B1E",
-    marginBottom: 8
+    fontFamily: FontFamily.extrabold,
+    color: Colors.text,
+    marginBottom: 8,
   },
   schemaErrorText: {
     textAlign: "center",
-    color: "#6B7280"
-  }
+    color: Colors.textMuted,
+  },
 });

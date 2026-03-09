@@ -201,7 +201,7 @@ export default function ProfileScreen() {
 
       {(stats?.postureStreak ?? 0) > 0 && (
         <View style={styles.streakRow}>
-          <Ionicons name="flame" size={28} color="#8311D4" />
+          <Ionicons name="flame" size={28} color={Colors.primary} />
           <Text style={styles.streakText}>{stats?.postureStreak ?? 0} Day Posture Streak</Text>
         </View>
       )}
@@ -440,7 +440,7 @@ const styles = StyleSheet.create({
   preorderButtonText: {
     fontSize: 14,
     fontFamily: FontFamily.semibold,
-    color: Colors.text,
+    color: "white",
   },
   streakRow: {
     flexDirection: "row",
@@ -457,7 +457,7 @@ const styles = StyleSheet.create({
   streakText: {
     fontSize: 16,
     fontFamily: FontFamily.bold,
-    color: "#8311D4",
+    color: Colors.primary,
   },
   plantarSection: {
     marginBottom: 16,

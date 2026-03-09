@@ -48,7 +48,7 @@ export default function AnalysisDetailScreen() {
   if (loading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color={Colors.primary} />
+        <ActivityIndicator size="large" color={Colors.accent} />
       </View>
     );
   }
@@ -143,7 +143,7 @@ const styles = StyleSheet.create({
   scoreValue: {
     fontSize: 48,
     fontFamily: FontFamily.extrabold,
-    color: Colors.primary
+    color: Colors.accent,
   },
   section: { marginBottom: 24 },
   sectionTitle: {

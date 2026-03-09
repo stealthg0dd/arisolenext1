@@ -10,6 +10,7 @@ import {
   View
 } from "react-native";
 
+import { Colors, FontFamily } from "@/constants/Colors";
 import { addComment, fetchComments } from "@/services/feed";
 import { Comment, FeedPost } from "@/types/database";
 
@@ -57,11 +58,12 @@ export function CommentModal({ open, post, userId, onClose }: Props) {
         </View>
 
         {loading ? (
-          <ActivityIndicator style={{ marginTop: 24 }} />
+          <ActivityIndicator style={{ marginTop: 24 }} color={Colors.accent} />
         ) : (
           <FlatList
             data={comments}
             keyExtractor={(item) => item.id}
+            contentContainerStyle={styles.listContent}
             renderItem={({ item }) => (
               <View style={styles.commentRow}>
                 <Text style={styles.commentBody}>{item.content}</Text>
@@ -76,6 +78,7 @@ export function CommentModal({ open, post, userId, onClose }: Props) {
             value={content}
             onChangeText={setContent}
             placeholder="Say something encouraging"
+            placeholderTextColor={Colors.textMuted}
             style={styles.input}
           />
           <Pressable style={styles.postButton} onPress={onSubmit}>
@@ -90,60 +93,81 @@ export function CommentModal({ open, post, userId, onClose }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F9FAFB"
+    backgroundColor: Colors.background,
   },
   header: {
     padding: 16,
     flexDirection: "row",
     justifyContent: "space-between",
+    alignItems: "center",
     borderBottomWidth: 1,
-    borderBottomColor: "#E5E7EB"
+    borderBottomColor: Colors.surfaceBorder,
   },
   title: {
     fontSize: 18,
-    fontWeight: "700"
+    fontFamily: FontFamily.extrabold,
+    color: Colors.text,
   },
   close: {
-    color: "#116530",
-    fontWeight: "700"
+    color: Colors.accent,
+    fontFamily: FontFamily.bold,
+    fontSize: 16,
+  },
+  listContent: {
+    padding: 16,
+    paddingBottom: 24,
   },
   commentRow: {
-    padding: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "#F3F4F6"
+    padding: 16,
+    flexDirection: "row",
+    backgroundColor: Colors.surfaceCard,
+    marginBottom: 8,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: Colors.surfaceBorder,
   },
   commentBody: {
-    color: "#1F2937"
+    color: Colors.text,
+    fontFamily: FontFamily.medium,
+    fontSize: 15,
+    flex: 1,
   },
   empty: {
     textAlign: "center",
-    color: "#6B7280",
-    marginTop: 24
+    color: Colors.textMuted,
+    marginTop: 24,
+    fontFamily: FontFamily.medium,
   },
   inputRow: {
-    padding: 12,
+    padding: 16,
     borderTopWidth: 1,
-    borderTopColor: "#E5E7EB",
+    borderTopColor: Colors.surfaceBorder,
     flexDirection: "row",
-    gap: 8
+    gap: 12,
+    backgroundColor: Colors.background,
   },
   input: {
     flex: 1,
-    backgroundColor: "white",
+    backgroundColor: Colors.surfaceCard,
     borderWidth: 1,
-    borderColor: "#D1D5DB",
-    borderRadius: 10,
-    paddingHorizontal: 10,
-    paddingVertical: 10
+    borderColor: Colors.surfaceBorder,
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    color: Colors.text,
+    fontSize: 16,
+    fontFamily: FontFamily.medium,
   },
   postButton: {
-    borderRadius: 10,
-    backgroundColor: "#116530",
+    borderRadius: 16,
+    backgroundColor: Colors.primary,
     justifyContent: "center",
-    paddingHorizontal: 14
+    paddingHorizontal: 14,
+    paddingVertical: 12,
   },
   postText: {
     color: "white",
-    fontWeight: "700"
-  }
+    fontFamily: FontFamily.bold,
+    fontSize: 16,
+  },
 });
