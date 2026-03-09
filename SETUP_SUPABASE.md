@@ -23,7 +23,7 @@ This creates: `user_profiles`, `posts`, `daily_check_ins`, `challenges`, `challe
 ## 3. Auth URL Configuration
 
 1. Go to **Authentication** → **URL Configuration**
-2. **Site URL**: Set to `https://ufceuqgqddwfrjybokes.supabase.co` or your production URL (not localhost)
+2. **Site URL**: Set to `https://YOUR_PROJECT_REF.supabase.co` or your production URL (not localhost)
 3. **Redirect URLs** – add:
    - `arisole://auth/callback`
    - `arisole://**`
@@ -32,7 +32,7 @@ This creates: `user_profiles`, `posts`, `daily_check_ins`, `challenges`, `challe
 ## 4. Google OAuth (if using)
 
 1. In **Authentication** → **Providers** → **Google**, enable and add your Client ID/Secret
-2. In Google Cloud Console, add redirect URI: `https://ufceuqgqddwfrjybokes.supabase.co/auth/v1/callback`
+2. In Google Cloud Console, add redirect URI: `https://YOUR_PROJECT_REF.supabase.co/auth/v1/callback`
 
 ## 5. Deploy Edge Functions
 
@@ -42,10 +42,10 @@ supabase functions deploy create-checkout
 supabase functions deploy refresh-challenge-scores
 ```
 
-Set secrets:
+Set secrets (never commit these; use Supabase Dashboard or CLI):
 ```bash
-supabase secrets set GEMINI_API_KEY=your_key
-supabase secrets set STRIPE_SECRET_KEY=your_key
+supabase secrets set GEMINI_API_KEY=your_gemini_api_key
+supabase secrets set STRIPE_SECRET_KEY=your_stripe_secret_key
 ```
 
 ## 6. Fonts (Optional)

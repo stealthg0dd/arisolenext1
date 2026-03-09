@@ -108,6 +108,20 @@ supabase secrets set STRIPE_WEBHOOK_SECRET=whsec_...
 
 Other APIs you may add later: Vertex AI, Google Places (see `.env.example`).
 
+### EAS Builds (preview/production)
+
+**Never put API keys in `eas.json`.** Use EAS Secrets instead:
+
+```bash
+# Set env vars for EAS builds (used by preview/production profiles)
+eas secret:create --name EXPO_PUBLIC_SUPABASE_URL --value "https://YOUR_PROJECT.supabase.co" --scope project
+eas secret:create --name EXPO_PUBLIC_SUPABASE_ANON_KEY --value "your_anon_key" --scope project
+eas secret:create --name EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY --value "pk_test_xxx" --scope project
+eas secret:create --name EXPO_PUBLIC_GEMINI_API_KEY --value "your_gemini_key" --scope project
+```
+
+Or use `eas env:create` for per-profile variables. These are injected at build time and never committed.
+
 ## Notes
 
 - **analyze-video**: Tries Gemini first, then Anthropic, then OpenAI; returns a safe default if all fail.
