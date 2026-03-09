@@ -6,22 +6,24 @@
     "scheme": "arisole",
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
+    "jsEngine": "hermes",
     "assetBundlePatterns": [
       "**/*"
     ],
-    "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "com.arisole.app",
-      "merchantId": "merchant.com.stealthgodd.arisole"
-    },
     "android": {
       "package": "com.stealthgodd.arisole",
+      "newArchEnabled": true,
       "permissions": [
         "CAMERA",
         "RECORD_AUDIO",
         "READ_EXTERNAL_STORAGE",
         "WRITE_EXTERNAL_STORAGE"
       ]
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.arisole.app",
+      "merchantId": "merchant.com.stealthgodd.arisole"
     },
     "plugins": [
       "expo-router",
@@ -40,13 +42,14 @@
         "expo-build-properties",
         {
           "android": {
-            "kotlinVersion": "1.9.24",
+            "kotlinVersion": "2.0.21",
             "minSdkVersion": 24,
-            "compileSdkVersion": 34,
-            "targetSdkVersion": 34
+            "compileSdkVersion": 35,
+            "targetSdkVersion": 35
           }
         }
       ],
+      "./plugins/withAndroidCppFix",
       [
         "@stripe/stripe-react-native",
         {
