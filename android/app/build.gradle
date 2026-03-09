@@ -130,6 +130,13 @@ android {
             crunchPngs enablePngCrunchInRelease.toBoolean()
         }
     }
+    
+    // Disable PNG cruncher to prevent AAPT2 crash on assets (e.g. assets_images_logo.png)
+    aaptOptions {
+        cruncherEnabled = false
+        useNewCruncher = false
+    }
+
     packagingOptions {
         jniLibs {
             def enableLegacyPackaging = findProperty('expo.useLegacyPackaging') ?: 'false'

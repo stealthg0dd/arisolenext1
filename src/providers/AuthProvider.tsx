@@ -36,23 +36,33 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const segments = useSegments();
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
-      setLoading(false);
-      if (data.session?.user.id) {
-        registerPushToken(data.session.user.id).catch(() => {});
-      }
-    });
+    let sub: { data: { subscription: { unsubscribe: () => void } } } | null = null;
 
-    const { data: subscription } = supabase.auth.onAuthStateChange((_event, nextSession) => {
-      setSession(nextSession);
-      if (nextSession?.user.id) {
-        registerPushToken(nextSession.user.id).catch(() => {});
-      }
-    });
+    try {
+      supabase.auth.getSession().then(({ data }) => {
+        setSession(data.session);
+        setLoading(false);
+        if (data.session?.user.id) {
+          registerPushToken(data.session.user.id).catch(() => {});
+        }
+      }).catch((err) => {
+        if (__DEV__) console.error("Auth getSession failed:", err);
+        setLoading(false);
+      });
+
+      sub = supabase.auth.onAuthStateChange((_event, nextSession) => {
+        setSession(nextSession);
+        if (nextSession?.user.id) {
+          registerPushToken(nextSession.user.id).catch(() => {});
+        }
+      });
+    } catch (err) {
+      if (__DEV__) console.error("Auth init failed (missing env?):", err);
+      setLoading(false);
+    }
 
     return () => {
-      subscription.subscription.unsubscribe();
+      sub?.data?.subscription?.unsubscribe();
     };
   }, []);
 
