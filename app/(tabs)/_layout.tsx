@@ -11,8 +11,14 @@ export default function TabsLayout() {
     <Tabs
       screenOptions={({ route }) => ({
         headerTitleAlign: "center",
-        tabBarActiveTintColor: Colors.accent,
+        headerStyle: { backgroundColor: Colors.background },
+        headerTintColor: Colors.text,
+        tabBarActiveTintColor: Colors.primary,
         tabBarInactiveTintColor: Colors.textMuted,
+        tabBarStyle: {
+          backgroundColor: Colors.background,
+          borderTopColor: Colors.surfaceBorder,
+        },
         tabBarIcon: ({ color, size }) => {
           const iconMap: Record<string, keyof typeof Ionicons.glyphMap> = {
             index: "home",

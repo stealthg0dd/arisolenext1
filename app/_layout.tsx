@@ -1,6 +1,8 @@
 import { StripeProvider } from "@stripe/stripe-react-native";
 import { Stack } from "expo-router";
-import { ActivityIndicator, Text, View } from "react-native";
+import { ActivityIndicator, StatusBar, Text, View } from "react-native";
+
+import { Colors } from "@/constants/Colors";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import React, { Component, type ReactNode } from "react";
@@ -81,6 +83,7 @@ function RootNavigator() {
 
   return (
     <>
+      <StatusBar barStyle="light-content" backgroundColor={Colors.background} />
       <RedirectToRecordIfPending />
       <Stack screenOptions={{ headerShown: false }} />
     </>

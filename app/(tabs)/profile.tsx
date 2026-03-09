@@ -1,8 +1,8 @@
 import * as Clipboard from "expo-clipboard";
 import { Ionicons } from "@expo/vector-icons";
-import { useFocusEffect } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import * as Linking from "expo-linking";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -82,7 +82,6 @@ export default function ProfileScreen() {
   const [loading, setLoading] = useState(true);
   const referralCount = profile?.referral_count ?? 0;
   const [copied, setCopied] = useState(false);
-  const settingsTapCount = useRef(0);
   const [developerMenuVisible, setDeveloperMenuVisible] = useState(false);
   const { showModal: showStreakModal, dismiss: dismissStreakModal } = useStreakMilestone(
     stats?.postureStreak ?? 0
@@ -90,13 +89,12 @@ export default function ProfileScreen() {
   const { simulateInsole, setSimulateInsole, simulateDark, setSimulateDark } = useSimulateInsole();
   const isPremium = profile?.is_premium === true;
 
+  const router = useRouter();
   const onSettingsPress = useCallback(() => {
-    if (!__DEV__) return;
-    settingsTapCount.current += 1;
-    if (settingsTapCount.current >= 7) {
-      setDeveloperMenuVisible(true);
-      settingsTapCount.current = 0;
-    }
+    router.push("/settings");
+  }, [router]);
+  const onSettingsLongPress = useCallback(() => {
+    if (__DEV__) setDeveloperMenuVisible(true);
   }, []);
 
   const referralLink = session?.user.id
@@ -156,7 +154,7 @@ export default function ProfileScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Pressable onPress={onSettingsPress} hitSlop={12}>
+        <Pressable onPress={onSettingsPress} onLongPress={onSettingsLongPress} hitSlop={12}>
           <Ionicons name="settings-outline" size={24} color={Colors.textSecondary} />
         </Pressable>
         <Text style={styles.handle}>@{profile?.username ?? "user"}</Text>

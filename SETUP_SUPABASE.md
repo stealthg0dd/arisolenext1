@@ -16,8 +16,9 @@ This creates: `user_profiles`, `posts`, `daily_check_ins`, `challenges`, `challe
 ## 2. Create Storage Buckets
 
 1. Go to **Storage** in the Supabase Dashboard
-2. Create two buckets:
-   - **gait-videos**: For uploaded video files. Set to **Public** (or configure RLS for authenticated uploads). Content-Type: video/mp4 for Android compatibility.
+2. Create buckets (or run `supabase/RUN_THIS_IN_SQL_EDITOR.sql` which creates `videos`):
+   - **videos**: For Record screen uploads. Must be **Public** so Gemini analyze-video can fetch the URL. Content-Type: video/mp4.
+   - **gait-videos**: Legacy bucket; app falls back to this if `videos` fails.
    - **analysis-results**: For AI analysis output JSON (used by Edge Function; service role uploads).
 
 ## 3. Auth URL Configuration

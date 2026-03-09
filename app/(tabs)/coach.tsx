@@ -163,6 +163,13 @@ export default function CoachScreen() {
               Ask me anything about your gait, posture, or movement. I’ll use your recent score and
               interests to give personalized advice.
             </Text>
+            <Pressable
+              style={styles.exercisesLink}
+              onPress={() => router.push("/personalized-exercises")}
+            >
+              <Ionicons name="fitness" size={20} color={Colors.primary} />
+              <Text style={styles.exercisesLinkText}>View Personalized Exercises</Text>
+            </Pressable>
           </View>
         )}
         {messages.map((m, i) => (
@@ -265,6 +272,23 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: Colors.textSecondary,
     lineHeight: 22,
+  },
+  exercisesLink: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    marginTop: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    backgroundColor: "rgba(131, 17, 212, 0.12)",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Colors.primary,
+  },
+  exercisesLinkText: {
+    fontSize: 15,
+    fontFamily: FontFamily.semibold,
+    color: Colors.primaryLight,
   },
   bubble: {
     maxWidth: "85%",

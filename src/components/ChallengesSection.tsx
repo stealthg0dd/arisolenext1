@@ -50,9 +50,6 @@ export function ChallengesSection({ onJoinChallenge }: Props) {
     );
   }
 
-  if (challenges.length === 0) {
-    return null;
-  }
 
   return (
     <View style={styles.section}>

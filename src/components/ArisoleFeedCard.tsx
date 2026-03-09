@@ -14,6 +14,7 @@ type Props = {
   post: FeedPost;
   onLike: (post: FeedPost) => void;
   onCommentPress: (post: FeedPost) => void;
+  onAnalysisPress?: (post: FeedPost) => void;
 };
 
 const CARD_WIDTH = Math.min(Dimensions.get("window").width - 28, 360);
@@ -21,7 +22,7 @@ const CARD_PADDING = 16;
 const CARD_BORDER_RADIUS = 20;
 const BADGE_BORDER_RADIUS = 12;
 
-export function ArisoleFeedCard({ post, onLike, onCommentPress }: Props) {
+export function ArisoleFeedCard({ post, onLike, onCommentPress, onAnalysisPress }: Props) {
   const viewShotRef = useRef<ViewShot>(null);
   const [sharing, setSharing] = useState(false);
 
@@ -77,10 +78,13 @@ export function ArisoleFeedCard({ post, onLike, onCommentPress }: Props) {
       )}
 
       {gaitScore !== null && (
-        <View style={styles.aiBadge}>
+        <Pressable
+          style={styles.aiBadge}
+          onPress={() => onAnalysisPress?.(post)}
+        >
           <Ionicons name="sparkles" size={16} color={Colors.primaryLight} />
           <Text style={styles.aiBadgeText}>AI Posture Score: {gaitScore}%</Text>
-        </View>
+        </Pressable>
       )}
 
       {!!post.caption && <Text style={styles.caption}>{post.caption}</Text>}

@@ -1,7 +1,19 @@
-import { Link } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Alert, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import {
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View
+} from "react-native";
 
+import { Colors, FontFamily } from "@/constants/Colors";
 import { supabase } from "@/lib/supabase";
 
 export default function SignUpScreen() {
@@ -9,6 +21,7 @@ export default function SignUpScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
+  const router = useRouter();
 
   const onSignUp = async () => {
     setBusy(true);
@@ -16,11 +29,7 @@ export default function SignUpScreen() {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: {
-        data: {
-          username
-        }
-      }
+      options: { data: { username } }
     });
 
     if (error) {
@@ -32,7 +41,7 @@ export default function SignUpScreen() {
     if (data.user) {
       await supabase.from("user_profiles").upsert({
         id: data.user.id,
-        username,
+        username: username || email.split("@")[0],
         avatar: null,
         level: 1,
         points: 0,
@@ -42,74 +51,128 @@ export default function SignUpScreen() {
 
     setBusy(false);
     Alert.alert("Account created", "Check your email if confirmation is required.");
+    router.replace("/(tabs)");
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Create Account</Text>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+    >
+      <ScrollView
+        contentContainerStyle={styles.scroll}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.header}>
+          <Text style={styles.title}>Create Account</Text>
+          <Text style={styles.subtitle}>Join the movement community.</Text>
+        </View>
 
-      <TextInput value={username} onChangeText={setUsername} placeholder="Username" style={styles.input} />
-      <TextInput
-        value={email}
-        onChangeText={setEmail}
-        placeholder="Email"
-        autoCapitalize="none"
-        keyboardType="email-address"
-        style={styles.input}
-      />
-      <TextInput
-        value={password}
-        onChangeText={setPassword}
-        placeholder="Password"
-        secureTextEntry
-        style={styles.input}
-      />
+        <TextInput
+          value={username}
+          onChangeText={setUsername}
+          placeholder="Username"
+          placeholderTextColor={Colors.textMuted}
+          style={styles.input}
+        />
+        <TextInput
+          value={email}
+          onChangeText={setEmail}
+          placeholder="Email"
+          placeholderTextColor={Colors.textMuted}
+          autoCapitalize="none"
+          keyboardType="email-address"
+          style={styles.input}
+        />
+        <TextInput
+          value={password}
+          onChangeText={setPassword}
+          placeholder="Password"
+          placeholderTextColor={Colors.textMuted}
+          secureTextEntry
+          style={styles.input}
+        />
 
-      <Pressable style={styles.button} onPress={onSignUp} disabled={busy}>
-        <Text style={styles.buttonText}>{busy ? "Working..." : "Sign Up"}</Text>
-      </Pressable>
+        <Pressable style={[styles.button, busy && styles.buttonDisabled]} onPress={onSignUp} disabled={busy}>
+          <Text style={styles.buttonText}>{busy ? "Working..." : "Sign Up"}</Text>
+        </Pressable>
 
-      <Text style={styles.footerText}>
-        Already have an account? <Link href="/(auth)/sign-in">Sign in</Link>
-      </Text>
-    </View>
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>Already have an account? </Text>
+          <Pressable onPress={() => router.push("/(auth)/sign-in")}>
+            <Text style={styles.link}>Sign in</Text>
+          </Pressable>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
+    backgroundColor: Colors.background
+  },
+  scroll: {
+    flexGrow: 1,
+    backgroundColor: Colors.background,
     padding: 24,
-    backgroundColor: "#F7F8F5"
+    paddingTop: 80,
+    paddingBottom: 40
+  },
+  header: {
+    marginBottom: 32
   },
   title: {
-    fontSize: 30,
-    fontWeight: "800",
-    marginBottom: 16,
-    color: "#0E3B1E"
+    fontSize: 28,
+    fontFamily: FontFamily.extrabold,
+    color: Colors.text,
+    marginBottom: 8
+  },
+  subtitle: {
+    fontSize: 16,
+    color: Colors.textSecondary
   },
   input: {
     borderWidth: 1,
-    borderColor: "#D1D5DB",
-    borderRadius: 10,
-    backgroundColor: "white",
-    marginBottom: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 12
+    borderColor: Colors.surfaceBorder,
+    borderRadius: 14,
+    backgroundColor: Colors.surfaceCard,
+    marginBottom: 14,
+    paddingHorizontal: 18,
+    paddingVertical: 14,
+    fontSize: 16,
+    color: Colors.text
   },
   button: {
-    backgroundColor: "#116530",
-    borderRadius: 10,
+    backgroundColor: Colors.primary,
+    borderRadius: 14,
     alignItems: "center",
-    paddingVertical: 12
+    paddingVertical: 16,
+    marginTop: 8,
+    marginBottom: 20
+  },
+  buttonDisabled: {
+    opacity: 0.7
   },
   buttonText: {
     color: "white",
-    fontWeight: "700"
+    fontFamily: FontFamily.bold,
+    fontSize: 16
+  },
+  footer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 24
   },
   footerText: {
-    marginTop: 12,
-    color: "#4B5563"
+    color: Colors.textSecondary,
+    fontSize: 15
+  },
+  link: {
+    color: Colors.primaryLight,
+    fontFamily: FontFamily.semibold
   }
 });

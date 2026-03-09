@@ -21,7 +21,7 @@ export default function LandingScreen() {
           style={styles.cta}
           onPress={() => {
             try {
-              router.push("/onboarding-survey");
+              router.push("/onboarding/goal");
             } catch (e) {
               console.error("Navigation to survey failed:", e);
             }

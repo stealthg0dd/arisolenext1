@@ -5,6 +5,7 @@ export type WellnessStats = {
   averagePosturePercent: number;
   winsCount: number;
   postureStreak: number;
+  checkInCount: number;
 };
 
 const POSTURE_THRESHOLD = 70;
@@ -89,10 +90,20 @@ export async function fetchWellnessStats(userId: string): Promise<WellnessStats>
 
   const postureStreak = calculatePostureStreak(posts);
 
+  const startOfMonth = new Date();
+  startOfMonth.setDate(1);
+  startOfMonth.setHours(0, 0, 0, 0);
+  const { count } = await supabase
+    .from("daily_check_ins")
+    .select("*", { count: "exact", head: true })
+    .eq("user_id", userId)
+    .gte("created_at", startOfMonth.toISOString());
+
   return {
     totalMovementMinutes,
     averagePosturePercent,
     winsCount: posts.length,
-    postureStreak
+    postureStreak,
+    checkInCount: count ?? 0
   };
 }

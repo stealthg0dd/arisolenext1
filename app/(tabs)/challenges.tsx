@@ -19,18 +19,17 @@ export default function ChallengesScreen() {
       })
       .catch((err) => {
         if ((err?.message ?? "").includes("schema cache")) setSchemaError(true);
+        setChallenges([]);
       })
       .finally(() => setLoading(false));
   }, []);
 
   useEffect(() => {
-    if (!selected) {
-      return;
-    }
+    if (!selected) return;
 
-    fetchChallengeLeaderboard(selected).then((rows) => {
-      setLeaders(rows.map((item) => ({ username: item.username, score: item.score })));
-    });
+    fetchChallengeLeaderboard(selected)
+      .then((rows) => setLeaders(rows.map((r) => ({ username: r.username, score: r.score }))))
+      .catch(() => setLeaders([]));
   }, [selected]);
 
   if (loading && !schemaError) {
@@ -79,7 +78,7 @@ export default function ChallengesScreen() {
             <Text style={styles.leaderScore}>{item.score}</Text>
           </View>
         )}
-        ListEmptyComponent={<Text style={styles.empty}>No participants yet.</Text>}
+        ListEmptyComponent={<Text style={styles.empty}>{challenges.length > 0 ? "No participants yet." : "No active challenges."}</Text>}
       />
     </View>
   );

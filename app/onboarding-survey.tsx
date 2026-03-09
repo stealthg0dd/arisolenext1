@@ -17,8 +17,9 @@ import { Colors, FontFamily } from "@/constants/Colors";
 import { type HiddenMetricKey } from "@/constants/hiddenMetrics";
 import { REFERRAL_CODE_STORAGE_KEY } from "@/constants/referralStorage";
 import { useAuth } from "@/providers/AuthProvider";
-import { supabase } from "@/lib/supabase";
 import { applyReferralCode } from "@/services/referral";
+import { updateOnboardingProfile } from "@/services/profile";
+import { useOnboardingStore } from "@/stores/onboardingStore";
 
 const BENTO_OPTIONS: {
   id: HiddenMetricKey;
@@ -52,18 +53,11 @@ const BENTO_OPTIONS: {
   }
 ];
 
-async function saveUserInterests(userId: string, interests: HiddenMetricKey[]) {
-  const { error } = await supabase
-    .from("user_profiles")
-    .update({ user_interests: interests })
-    .eq("id", userId);
-
-  if (error) throw error;
-}
 
 export default function OnboardingSurveyScreen() {
   const router = useRouter();
   const { session } = useAuth();
+  const { goal, activityLevel, smartInsoles, reset } = useOnboardingStore();
   const [selected, setSelected] = useState<HiddenMetricKey[]>([]);
   const [referralCode, setReferralCode] = useState("");
   const [loading, setLoading] = useState(false);
@@ -88,7 +82,13 @@ export default function OnboardingSurveyScreen() {
           await applyReferralCode(session.user.id, referralCode.trim());
           await AsyncStorage.removeItem(REFERRAL_CODE_STORAGE_KEY);
         }
-        await saveUserInterests(session.user.id, selected);
+        await updateOnboardingProfile(session.user.id, {
+          onboarding_goal: goal ?? null,
+          onboarding_activity_level: activityLevel ?? null,
+          onboarding_smart_insoles: smartInsoles ?? null,
+          user_interests: selected
+        });
+        reset();
       }
     } catch (e) {
       console.warn("Survey save failed:", e);
@@ -100,7 +100,7 @@ export default function OnboardingSurveyScreen() {
         console.error("Navigation to record failed:", navErr);
       }
     }
-  }, [session?.user.id, selected, referralCode, router]);
+  }, [session?.user.id, selected, referralCode, goal, activityLevel, smartInsoles, reset, router]);
 
   return (
     <KeyboardAvoidingView

@@ -67,9 +67,6 @@ export function ChallengeLeaderboard() {
     );
   }
 
-  if (entries.length === 0) {
-    return null;
-  }
 
   const medals = ["🥇", "🥈", "🥉"];
 

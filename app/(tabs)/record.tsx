@@ -14,6 +14,7 @@ import {
 } from "react-native";
 
 import * as Haptics from "expo-haptics";
+import { Colors } from "@/constants/Colors";
 import { LightingCheck } from "@/components/LightingCheck";
 import { PoseGuideOverlay } from "@/components/PoseGuideOverlay";
 import { PressureMap } from "@/components/PressureMap";
@@ -407,7 +408,7 @@ export default function RecordScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F9FAFB",
+    backgroundColor: Colors.background,
     padding: 14
   },
   centered: {
@@ -418,7 +419,7 @@ const styles = StyleSheet.create({
   },
   info: {
     textAlign: "center",
-    color: "#374151",
+    color: Colors.textSecondary,
     marginBottom: 12
   },
   cameraWrap: {
@@ -434,15 +435,16 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1,
-    borderColor: "#D1D5DB",
+    borderColor: Colors.surfaceBorder,
     borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 10,
-    backgroundColor: "white"
+    backgroundColor: Colors.surfaceCard,
+    color: Colors.text
   },
   button: {
     marginTop: 10,
-    backgroundColor: "#116530",
+    backgroundColor: Colors.primary,
     borderRadius: 10,
     alignItems: "center",
     paddingVertical: 12
@@ -453,7 +455,7 @@ const styles = StyleSheet.create({
   },
   note: {
     marginTop: 10,
-    color: "#6B7280",
+    color: Colors.textMuted,
     textAlign: "center"
   },
   cooldownNote: {
@@ -523,7 +525,7 @@ const styles = StyleSheet.create({
     padding: 24
   },
   resultCard: {
-    backgroundColor: "white",
+    backgroundColor: Colors.surfaceCard,
     borderRadius: 20,
     padding: 24,
     width: "100%",
@@ -533,13 +535,13 @@ const styles = StyleSheet.create({
   resultTitle: {
     fontSize: 18,
     fontWeight: "800",
-    color: "#0E3B1E",
+    color: Colors.accent,
     marginBottom: 12
   },
   resultMessage: {
     marginTop: 12,
     marginBottom: 16,
-    color: "#374151",
+    color: Colors.text,
     textAlign: "center"
   }
 });

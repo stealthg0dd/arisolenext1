@@ -23,45 +23,52 @@ function withTimeout<T>(promise: Promise<T>, ms: number, message: string): Promi
   ]);
 }
 
+const BUCKETS_TO_TRY = ["videos", "gait-videos"] as const;
+
 export async function uploadVideo(videoUri: string, userId: string): Promise<string> {
   const fileName = `${userId}/${Date.now()}.mp4`;
 
   let body: Blob | ArrayBuffer;
   try {
-    const base64 = await FileSystem.readAsStringAsync(videoUri, {
-      encoding: FileSystem.EncodingType.Base64
-    });
-    body = base64ToArrayBuffer(base64);
+    // Try fetch first (works for content:// on Android, file:// on iOS)
+    const response = await fetch(videoUri);
+    if (!response.ok) throw new Error(`Fetch failed: ${response.status}`);
+    body = await response.blob();
   } catch {
     try {
-      const response = await fetch(videoUri);
-      body = await response.blob();
-    } catch (e) {
-      throw new Error("Could not read video file. Please try again.");
+      const base64 = await FileSystem.readAsStringAsync(videoUri, {
+        encoding: FileSystem.EncodingType.Base64
+      });
+      body = base64ToArrayBuffer(base64);
+    } catch {
+      throw new Error(
+        "Could not read video file. Ensure the recording completed and try again."
+      );
     }
   }
 
-  const uploadPromise = (async () => {
-    const { error } = await supabase.storage.from("gait-videos").upload(fileName, body, {
-      contentType: "video/mp4"
-    });
-    if (error) throw error;
-  })();
-
-  try {
-    await withTimeout(
-      uploadPromise,
-      UPLOAD_TIMEOUT_MS,
-      "Upload timed out. Please check your connection and try again."
-    );
-  } catch (e) {
-    const msg = (e as Error).message ?? "";
-    if (msg.includes("timed out")) throw e;
-    throw e;
+  let lastError: Error | null = null;
+  for (const bucket of BUCKETS_TO_TRY) {
+    try {
+      const { error } = await withTimeout(
+        supabase.storage.from(bucket).upload(fileName, body, {
+          contentType: "video/mp4",
+          upsert: false
+        }),
+        UPLOAD_TIMEOUT_MS,
+        "Upload timed out. Please check your connection and try again."
+      );
+      if (error) {
+        lastError = error;
+        continue;
+      }
+      const { data } = supabase.storage.from(bucket).getPublicUrl(fileName);
+      return data.publicUrl;
+    } catch (e) {
+      lastError = e as Error;
+    }
   }
-
-  const { data } = supabase.storage.from("gait-videos").getPublicUrl(fileName);
-  return data.publicUrl;
+  throw lastError ?? new Error("Upload failed. Ensure the 'videos' or 'gait-videos' bucket exists and is public.");
 }
 
 export const FALLBACK_ANALYSIS: AIAnalysis = {

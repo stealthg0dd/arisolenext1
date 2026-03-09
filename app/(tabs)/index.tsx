@@ -1,17 +1,26 @@
 import { FlashList } from "@shopify/flash-list";
+import { useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, RefreshControl, StyleSheet, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View
+} from "react-native";
 
 import { ArisoleFeedCard } from "@/components/ArisoleFeedCard";
 import { ChallengesSection } from "@/components/ChallengesSection";
 import { CommentModal } from "@/components/CommentModal";
-import { Colors, FontFamily, FontWeights } from "@/constants/Colors";
+import { Colors, FontFamily } from "@/constants/Colors";
 import { useAuth } from "@/providers/AuthProvider";
 import { fetchFeed, subscribeToFeedRealtime, toggleLike } from "@/services/feed";
 import { FeedPost } from "@/types/database";
 
 export default function FeedScreen() {
   const { session } = useAuth();
+  const router = useRouter();
   const userId = session?.user.id;
 
   const [posts, setPosts] = useState<FeedPost[]>([]);
@@ -140,11 +149,21 @@ export default function FeedScreen() {
     );
   }
 
+  const onAnalysisPress = useCallback(
+    (post: FeedPost) => router.push(`/analysis/${post.id}` as any),
+    [router]
+  );
+
   const renderItem = useCallback(
     ({ item }: { item: FeedPost }) => (
-      <ArisoleFeedCard post={item} onLike={onLike} onCommentPress={setActivePost} />
+      <ArisoleFeedCard
+        post={item}
+        onLike={onLike}
+        onCommentPress={setActivePost}
+        onAnalysisPress={onAnalysisPress}
+      />
     ),
-    [onLike]
+    [onLike, onAnalysisPress]
   );
 
   const flashListProps = {
@@ -160,7 +179,25 @@ export default function FeedScreen() {
     refreshControl: <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />,
     ListHeaderComponent: (
       <View>
-        <Text style={styles.header}>Today&apos;s movement</Text>
+        <Text style={styles.header}>Arisole Feed</Text>
+        <Text style={styles.subheader}>Today&apos;s movement</Text>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.storyScroll}
+          contentContainerStyle={styles.storyContent}
+        >
+          <View style={styles.storyAvatar}>
+            <Text style={styles.storyAvatarText}>+</Text>
+          </View>
+          {posts.slice(0, 4).map((p) => (
+            <View key={p.id} style={styles.storyAvatar}>
+              <Text style={styles.storyAvatarText}>
+                {p.author.username?.charAt(0)?.toUpperCase() ?? "?"}
+              </Text>
+            </View>
+          ))}
+        </ScrollView>
         <ChallengesSection />
       </View>
     ),
@@ -193,9 +230,38 @@ const styles = StyleSheet.create({
     marginTop: 12,
     marginHorizontal: 14,
     marginBottom: 2,
-    fontSize: 22,
+    fontSize: 24,
     fontFamily: FontFamily.extrabold,
     color: Colors.text,
+  },
+  subheader: {
+    marginHorizontal: 14,
+    marginBottom: 12,
+    fontSize: 15,
+    color: Colors.textSecondary,
+  },
+  storyScroll: {
+    marginBottom: 12,
+  },
+  storyContent: {
+    paddingHorizontal: 14,
+    gap: 12,
+    paddingRight: 28,
+  },
+  storyAvatar: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: Colors.surfaceCard,
+    borderWidth: 2,
+    borderColor: Colors.primary,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  storyAvatarText: {
+    fontSize: 20,
+    fontFamily: FontFamily.bold,
+    color: Colors.accent,
   },
   empty: {
     textAlign: "center",

@@ -28,3 +28,20 @@ export async function fetchMyPosts(userId: string) {
 
   return (data ?? []) as Post[];
 }
+
+export async function updateOnboardingProfile(
+  userId: string,
+  data: {
+    onboarding_goal?: string | null;
+    onboarding_activity_level?: string | null;
+    onboarding_smart_insoles?: string | null;
+    user_interests?: string[];
+  }
+) {
+  const { error } = await supabase
+    .from("user_profiles")
+    .update(data)
+    .eq("id", userId);
+
+  if (error) throw error;
+}

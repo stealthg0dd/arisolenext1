@@ -1,4 +1,5 @@
 // Primary: Gemini. Fallback: Anthropic → OpenAI. All return { postureScore, insights, message, isValidContent }.
+import { encodeBase64 } from "https://deno.land/std@0.208.0/encoding/base64.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { GoogleGenerativeAI } from "npm:@google/generative-ai@0.24.0";
 
@@ -103,7 +104,23 @@ async function tryGemini(videoUrl: string, retryCount = 0): Promise<AnalysisResu
 If valid (feet/footwear visible): Analyze the movement and posture. ${JSON_PROMPT}`;
 
   try {
-    const result = await model.generateContent([prompt, `video_url: ${videoUrl}`]);
+    // Fetch video from public URL and pass as inline data (Gemini requires actual video bytes)
+    const videoRes = await fetch(videoUrl);
+    if (!videoRes.ok) {
+      throw new Error(`Could not fetch video: ${videoRes.status} ${videoRes.statusText}`);
+    }
+    const videoBuffer = await videoRes.arrayBuffer();
+    const videoBase64 = encodeBase64(new Uint8Array(videoBuffer));
+
+    const result = await model.generateContent([
+      {
+        inlineData: {
+          mimeType: "video/mp4",
+          data: videoBase64
+        }
+      },
+      prompt
+    ]);
     const text = result.response.text().trim();
     return parseJsonResponse(text);
   } catch (e) {
