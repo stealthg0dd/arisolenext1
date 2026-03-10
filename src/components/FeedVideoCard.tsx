@@ -2,9 +2,10 @@ import { Ionicons } from "@expo/vector-icons";
 import ViewShot from "react-native-view-shot";
 import { useVideoPlayer, VideoView } from "expo-video";
 import { useRef, useState } from "react";
-import { Alert, Dimensions, Pressable, Share, StyleSheet, Text, View } from "react-native";
+import { Dimensions, Pressable, Share, StyleSheet, Text, View } from "react-native";
 
 import { Colors, FontFamily } from "@/constants/Colors";
+import { useToast } from "@/contexts/ToastContext";
 import { AIAnalysis, FeedPost } from "@/types/database";
 
 type Props = {
@@ -32,6 +33,7 @@ function AuraCardContent({ analysis, username }: { analysis: AIAnalysis; usernam
 export function FeedVideoCard({ post, onLike, onCommentPress }: Props) {
   const viewShotRef = useRef<ViewShot>(null);
   const [sharing, setSharing] = useState(false);
+  const toast = useToast();
   const player = useVideoPlayer(post.video_url, (videoPlayer) => {
     videoPlayer.loop = true;
     videoPlayer.muted = true;
@@ -42,7 +44,7 @@ export function FeedVideoCard({ post, onLike, onCommentPress }: Props) {
 
   const onShareToStory = async () => {
     if (!analysis) {
-      Alert.alert("No analysis", "This post has no AI analysis to share.");
+      toast.showError("This post has no AI analysis to share.");
       return;
     }
     setSharing(true);
@@ -53,7 +55,7 @@ export function FeedVideoCard({ post, onLike, onCommentPress }: Props) {
         await Share.share({ url: uri, message: `My Aura Score: ${score ?? analysis.postureScore}` });
       }
     } catch (e) {
-      Alert.alert("Share failed", (e as Error).message);
+      toast.showError((e as Error).message);
     } finally {
       setSharing(false);
     }

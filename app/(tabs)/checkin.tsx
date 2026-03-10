@@ -1,7 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useCallback, useEffect, useState } from "react";
 import {
-  Alert,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -10,6 +9,7 @@ import {
 } from "react-native";
 
 import { Colors, FontFamily } from "@/constants/Colors";
+import { useToast } from "@/contexts/ToastContext";
 import { useAuth } from "@/providers/AuthProvider";
 import { fetchMyProfile } from "@/services/profile";
 import { fetchWellnessStats } from "@/services/stats";
@@ -24,6 +24,7 @@ const MOOD_OPTIONS = [
 
 export default function CheckInScreen() {
   const { session } = useAuth();
+  const toast = useToast();
   const [feeling, setFeeling] = useState(7);
   const [shoeType, setShoeType] = useState("Road");
   const [activity, setActivity] = useState<"walk" | "run">("walk");
@@ -52,13 +53,13 @@ export default function CheckInScreen() {
 
   const onSubmit = async () => {
     if (!session?.user.id) {
-      Alert.alert("Sign in required", "Please sign in to save your check-in.");
+      toast.showError("Please sign in to save your check-in.");
       return;
     }
 
     const score = Number(feeling);
     if (Number.isNaN(score) || score < 1 || score > 10) {
-      Alert.alert("Invalid score", "Feeling score must be 1-10.");
+      toast.showError("Feeling score must be 1-10.");
       return;
     }
 
@@ -71,9 +72,9 @@ export default function CheckInScreen() {
         activity
       });
       await loadStats();
-      Alert.alert("Check-in saved", "Your streak has been updated.");
+      toast.showSuccess("Check-in saved. Your streak has been updated.");
     } catch (error: unknown) {
-      Alert.alert("Check-in failed", (error as Error).message ?? "Please try again.");
+      toast.showError((error as Error).message ?? "Please try again.");
     } finally {
       setBusy(false);
     }

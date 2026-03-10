@@ -3,11 +3,12 @@ import * as Haptics from "expo-haptics";
 import * as Sharing from "expo-sharing";
 import { useVideoPlayer, VideoView } from "expo-video";
 import { useRef, useState } from "react";
-import { Alert, Dimensions, Pressable, StyleSheet, Text, View } from "react-native";
+import { Dimensions, Pressable, StyleSheet, Text, View } from "react-native";
 import ViewShot from "react-native-view-shot";
 
 import { Colors, FontFamily, FontWeights } from "@/constants/Colors";
 import { PostureScorecardContent } from "@/components/PostureScorecard";
+import { useToast } from "@/contexts/ToastContext";
 import { AIAnalysis, FeedPost } from "@/types/database";
 
 type Props = {
@@ -25,6 +26,7 @@ const BADGE_BORDER_RADIUS = 12;
 export function ArisoleFeedCard({ post, onLike, onCommentPress, onAnalysisPress }: Props) {
   const viewShotRef = useRef<ViewShot>(null);
   const [sharing, setSharing] = useState(false);
+  const toast = useToast();
 
   const player = useVideoPlayer(post.video_url, (videoPlayer) => {
     videoPlayer.loop = true;
@@ -37,14 +39,14 @@ export function ArisoleFeedCard({ post, onLike, onCommentPress, onAnalysisPress 
 
   const onShare = async () => {
     if (gaitScore === null && !analysis) {
-      Alert.alert("No score", "This post has no posture score to share.");
+      toast.showError("This post has no posture score to share.");
       return;
     }
     setSharing(true);
     try {
       const canShare = await Sharing.isAvailableAsync();
       if (!canShare) {
-        Alert.alert("Sharing unavailable", "Sharing is not available on this device.");
+        toast.showError("Sharing is not available on this device.");
         return;
       }
       const uri = await viewShotRef.current?.capture?.();
@@ -55,7 +57,7 @@ export function ArisoleFeedCard({ post, onLike, onCommentPress, onAnalysisPress 
         });
       }
     } catch (e) {
-      Alert.alert("Share failed", (e as Error).message);
+      toast.showError((e as Error).message);
     } finally {
       setSharing(false);
     }

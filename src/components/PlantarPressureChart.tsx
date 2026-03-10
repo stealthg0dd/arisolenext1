@@ -14,7 +14,7 @@ const ZONE_IDS = {
   FORE_R: "zone-fore-r"
 } as const;
 
-const HEAT_COLORS = ["#8311D4", "#A855F7", "#C4B5FD", "#E9D5FF", "#A855F7"];
+const HEAT_COLORS = [Colors.primary, Colors.primaryLight, Colors.primaryLighter, Colors.primaryMuted, Colors.primaryLight];
 
 type ZoneKey = keyof typeof ZONE_IDS;
 
@@ -55,9 +55,9 @@ export function PlantarPressureChart({ simulateInsole = true }: Props) {
     if (simulateInsole && z.isCycling) {
       return HEAT_COLORS[cycleIndex];
     }
-    if (z.value >= 0.8) return "#8311D4";
-    if (z.value >= 0.5) return "#A855F7";
-    return "#C4B5FD";
+    if (z.value >= 0.8) return Colors.primary;
+    if (z.value >= 0.5) return Colors.primaryLight;
+    return Colors.primaryLighter;
   };
 
   return (

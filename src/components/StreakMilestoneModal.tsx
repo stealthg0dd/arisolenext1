@@ -20,12 +20,12 @@ export function StreakMilestoneModal({ visible, streak, onDismiss }: Props) {
       <Pressable style={styles.overlay} onPress={onDismiss}>
         <Pressable style={styles.card} onPress={(e) => e.stopPropagation()}>
           <View style={styles.iconWrap}>
-            <Ionicons name="flame" size={64} color="#8311D4" />
+            <Ionicons name="flame" size={64} color={Colors.primary} />
           </View>
           <Text style={styles.title}>{streak} Day Streak!</Text>
           <Text style={styles.subtitle}>Early Adopter</Text>
           <View style={styles.badge}>
-            <Ionicons name="ribbon" size={24} color="#8311D4" />
+            <Ionicons name="ribbon" size={24} color={Colors.primary} />
             <Text style={styles.badgeText}>Early Adopter Badge</Text>
           </View>
           <Text style={styles.message}>
@@ -56,7 +56,7 @@ const styles = StyleSheet.create({
     padding: 24,
     alignItems: "center",
     borderWidth: 2,
-    borderColor: "#8311D4",
+    borderColor: Colors.primary,
   },
   iconWrap: {
     marginBottom: 16,
@@ -69,7 +69,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 16,
-    color: "#8311D4",
+    color: Colors.primary,
     fontFamily: FontFamily.semibold,
     marginBottom: 16,
   },
@@ -86,7 +86,7 @@ const styles = StyleSheet.create({
   badgeText: {
     fontSize: 14,
     fontFamily: FontFamily.bold,
-    color: "#8311D4",
+    color: Colors.primary,
   },
   message: {
     fontSize: 14,
@@ -95,7 +95,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   button: {
-    backgroundColor: "#8311D4",
+    backgroundColor: Colors.primary,
     paddingVertical: 14,
     paddingHorizontal: 32,
     borderRadius: 14,

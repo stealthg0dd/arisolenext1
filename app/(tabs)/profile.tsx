@@ -332,7 +332,7 @@ function DeveloperMenuModal({
             <Switch
               value={simulateInsole}
               onValueChange={onSimulateInsoleChange}
-              trackColor={{ false: Colors.surfaceBorder, true: "#8311D4" }}
+              trackColor={{ false: Colors.surfaceBorder, true: Colors.primary }}
               thumbColor="#fff"
             />
           </View>
@@ -341,7 +341,7 @@ function DeveloperMenuModal({
             <Switch
               value={simulateDark}
               onValueChange={onSimulateDarkChange}
-              trackColor={{ false: Colors.surfaceBorder, true: "#8311D4" }}
+              trackColor={{ false: Colors.surfaceBorder, true: Colors.primary }}
               thumbColor="#fff"
             />
           </View>

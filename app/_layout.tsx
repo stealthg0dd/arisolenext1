@@ -13,6 +13,7 @@ import { useEffect, useRef } from "react";
 import { AuthProvider, useAuth } from "@/providers/AuthProvider";
 import { DailyCheckInProvider } from "@/providers/DailyCheckInProvider";
 import { FontProvider } from "@/providers/FontProvider";
+import { ToastProvider } from "@/contexts/ToastContext";
 import { PendingChallengeProvider } from "@/providers/PendingChallengeProvider";
 import { OnboardingProvider } from "@/providers/OnboardingProvider";
 import { PendingVideoProvider, usePendingVideo } from "@/providers/PendingVideoProvider";
@@ -39,11 +40,11 @@ class RootErrorBoundary extends Component<Props, State> {
     if (this.state.hasError) {
       return (
         <View style={{ flex: 1, justifyContent: "center", alignItems: "center", padding: 24 }}>
-          <Text style={{ color: "#e2e8f0", fontSize: 16, textAlign: "center" }}>
+          <Text style={{ color: Colors.text, fontSize: 16, textAlign: "center" }}>
             Something went wrong. Check that EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY are set.
           </Text>
           {__DEV__ && this.state.error && (
-            <Text style={{ color: "#94a3b8", fontSize: 12, marginTop: 16 }}>
+            <Text style={{ color: Colors.textMuted, fontSize: 12, marginTop: 16 }}>
               {this.state.error.message}
             </Text>
           )}
@@ -108,6 +109,7 @@ export default function RootLayout() {
       <SafeAreaProvider>
         <StripeWrapper>
           <AuthProvider>
+            <ToastProvider>
             <FontProvider>
               <OnboardingVideoPrecache />
               <PendingVideoProvider>
@@ -124,6 +126,7 @@ export default function RootLayout() {
                 </PendingChallengeProvider>
               </PendingVideoProvider>
             </FontProvider>
+            </ToastProvider>
           </AuthProvider>
         </StripeWrapper>
       </SafeAreaProvider>

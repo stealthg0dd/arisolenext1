@@ -1,6 +1,7 @@
 import { useRouter } from "expo-router";
 import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
 
+import { Colors, FontFamily } from "@/constants/Colors";
 import { isTrialExpired } from "@/lib/trial";
 import { createCheckoutSession, openStripeCheckout } from "@/services/stripe";
 import { UserProfile } from "@/types/database";
@@ -62,36 +63,38 @@ const styles = StyleSheet.create({
     padding: 24
   },
   card: {
-    backgroundColor: "#fff",
+    backgroundColor: Colors.surfaceCard,
     borderRadius: 20,
     padding: 24,
     width: "100%",
-    maxWidth: 340
+    maxWidth: 340,
+    borderWidth: 1,
+    borderColor: Colors.surfaceBorder
   },
   title: {
     fontSize: 22,
-    fontWeight: "800",
-    color: "#0f172a",
+    fontFamily: FontFamily.extrabold,
+    color: Colors.text,
     marginBottom: 12
   },
   body: {
     fontSize: 15,
-    color: "#475569",
+    color: Colors.textSecondary,
     marginBottom: 24
   },
   primaryButton: {
-    backgroundColor: "#116530",
+    backgroundColor: Colors.primary,
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: "center",
     marginBottom: 12
   },
   primaryButtonText: {
-    color: "#fff",
-    fontWeight: "700"
+    color: "white",
+    fontFamily: FontFamily.bold
   },
   secondaryText: {
-    color: "#64748b",
+    color: Colors.textMuted,
     textAlign: "center"
   }
 });

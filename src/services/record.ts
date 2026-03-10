@@ -1,3 +1,4 @@
+import { Platform } from "react-native";
 import * as FileSystem from "expo-file-system/legacy";
 import { supabase } from "@/lib/supabase";
 import { AIAnalysis } from "@/types/database";
@@ -25,26 +26,78 @@ function withTimeout<T>(promise: Promise<T>, ms: number, message: string): Promi
 
 const BUCKETS_TO_TRY = ["videos", "gait-videos"] as const;
 
-export async function uploadVideo(videoUri: string, userId: string): Promise<string> {
-  const fileName = `${userId}/${Date.now()}.mp4`;
+/**
+ * Resolves a video URI to a path we can read. On Android, content:// URIs
+ * often fail with fetch/readAsStringAsync; copy to cache first.
+ */
+async function resolveVideoUri(videoUri: string): Promise<string> {
+  const trimmed = (videoUri ?? "").trim();
+  if (!trimmed) {
+    throw new Error("No video file. Ensure the recording completed and try again.");
+  }
 
-  let body: Blob | ArrayBuffer;
-  try {
-    // Try fetch first (works for content:// on Android, file:// on iOS)
-    const response = await fetch(videoUri);
-    if (!response.ok) throw new Error(`Fetch failed: ${response.status}`);
-    body = await response.blob();
-  } catch {
+  // On Android, content:// URIs are unreliable for direct read - copy to cache first
+  if (Platform.OS === "android" && trimmed.startsWith("content://")) {
+    const cachePath = `${FileSystem.cacheDirectory}arisole_video_${Date.now()}.mp4`;
     try {
-      const base64 = await FileSystem.readAsStringAsync(videoUri, {
-        encoding: FileSystem.EncodingType.Base64
-      });
-      body = base64ToArrayBuffer(base64);
-    } catch {
+      await FileSystem.copyAsync({ from: trimmed, to: cachePath });
+      const info = await FileSystem.getInfoAsync(cachePath);
+      if (!info.exists || (info.size != null && info.size < 1000)) {
+        await FileSystem.deleteAsync(cachePath, { idempotent: true });
+        throw new Error("Video file is empty or invalid. Please record again.");
+      }
+      return cachePath;
+    } catch (e) {
+      const msg = (e as Error).message ?? "";
+      if (msg.includes("empty") || msg.includes("invalid")) throw e;
       throw new Error(
         "Could not read video file. Ensure the recording completed and try again."
       );
     }
+  }
+
+  // Validate file exists for file:// URIs
+  if (trimmed.startsWith("file://")) {
+    const info = await FileSystem.getInfoAsync(trimmed);
+    if (!info.exists) {
+      throw new Error("Video file not found. Please record again.");
+    }
+    if (info.size != null && info.size < 1000) {
+      throw new Error("Video file is too small. Please record at least 5 seconds.");
+    }
+  }
+
+  return trimmed;
+}
+
+export async function uploadVideo(videoUri: string, userId: string): Promise<string> {
+  const resolvedUri = await resolveVideoUri(videoUri);
+  const fileName = `${userId}/${Date.now()}.mp4`;
+  const isTempCopy = resolvedUri !== videoUri;
+
+  let body: Blob | ArrayBuffer;
+  try {
+    const response = await fetch(resolvedUri);
+    if (!response.ok) throw new Error(`Fetch failed: ${response.status}`);
+    body = await response.blob();
+  } catch {
+    try {
+      const base64 = await FileSystem.readAsStringAsync(resolvedUri, {
+        encoding: FileSystem.EncodingType.Base64
+      });
+      body = base64ToArrayBuffer(base64);
+    } catch {
+      if (isTempCopy) {
+        await FileSystem.deleteAsync(resolvedUri, { idempotent: true });
+      }
+      throw new Error(
+        "Could not read video file. Ensure the recording completed and try again."
+      );
+    }
+  }
+
+  if (isTempCopy) {
+    await FileSystem.deleteAsync(resolvedUri, { idempotent: true });
   }
 
   let lastError: Error | null = null;

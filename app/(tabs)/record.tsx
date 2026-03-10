@@ -13,6 +13,8 @@ import {
   View
 } from "react-native";
 
+import { useToast } from "@/contexts/ToastContext";
+
 import * as Haptics from "expo-haptics";
 import { Colors, FontFamily } from "@/constants/Colors";
 import { LightingCheck } from "@/components/LightingCheck";
@@ -37,6 +39,7 @@ export default function RecordScreen() {
   const { pendingVideo, setPendingVideo, clearPendingVideo } = usePendingVideo();
   const { pendingChallengeId, clearPendingChallenge } = usePendingChallenge();
   const router = useRouter();
+  const toast = useToast();
 
   const [recording, setRecording] = useState(false);
   const [caption, setCaption] = useState("");
@@ -101,10 +104,7 @@ export default function RecordScreen() {
         try {
           const result = await analyzeVideoWithGemini(publicUrl, session.user.id);
           if (result && "isValidContent" in result && result.isValidContent === false) {
-            Alert.alert(
-              "Wrong content",
-              result.message || "Please take video of your feet movement in closeup or footwear only."
-            );
+            toast.showError(result.message || "Please take video of your feet movement in closeup or footwear only.");
             clearPendingVideo();
             return;
           }
@@ -145,10 +145,7 @@ export default function RecordScreen() {
         setCooldownEndsAt(Date.now() + 30000);
       } catch (err: unknown) {
         const msg = (err as Error).message ?? "";
-        Alert.alert(
-          msg.includes("Rate limit") ? "Rate Limit Reached" : "Couldn't unlock result",
-          msg || "Please try again."
-        );
+        toast.showError(msg || "Please try again.");
       } finally {
         setBusy(false);
         pendingVideoProcessingRef.current = false;
@@ -170,10 +167,7 @@ export default function RecordScreen() {
     if (!microphonePermission?.granted) {
       const result = await requestMicrophonePermission();
       if (!result.granted) {
-        Alert.alert(
-          "Microphone Required for Video",
-          "Video recording needs microphone access. Please enable it in Settings to record with audio."
-        );
+        toast.showError("Video recording needs microphone access. Please enable it in Settings.");
         return;
       }
     }
@@ -185,15 +179,18 @@ export default function RecordScreen() {
         maxDuration: 30
       });
 
-      if (!video?.uri) {
+      if (!video?.uri || typeof video.uri !== "string" || !video.uri.trim()) {
         setRecording(false);
         return;
       }
 
+      // Give Android time to flush the file to disk (content:// URIs)
+      await new Promise((r) => setTimeout(r, 400));
+
       // Duration may be missing on Android; only enforce if explicitly provided and too short
       const durationMs = (video as { uri: string; duration?: number }).duration;
       if (durationMs != null && durationMs > 0 && durationMs < 5000) {
-        Alert.alert("Keep going", "Record at least 5 seconds of foot movement for meaningful feedback.");
+        toast.showError("Record at least 5 seconds of foot movement for meaningful feedback.");
         setRecording(false);
         return;
       }
@@ -211,10 +208,7 @@ export default function RecordScreen() {
       try {
         const result = await analyzeVideoWithGemini(publicUrl, session.user.id);
         if (result && "isValidContent" in result && result.isValidContent === false) {
-          Alert.alert(
-            "Wrong content",
-            result.message || "Please take video of your feet movement in closeup or footwear only."
-          );
+          toast.showError(result.message || "Please take video of your feet movement in closeup or footwear only.");
           setBusy(false);
           return;
         }
@@ -256,10 +250,7 @@ export default function RecordScreen() {
       setCooldownEndsAt(Date.now() + 30000);
     } catch (error: unknown) {
       const msg = (error as Error).message ?? "";
-      Alert.alert(
-        msg.includes("Rate limit") ? "Rate Limit Reached" : "Record failed",
-        msg || "Please try again."
-      );
+      toast.showError(msg || "Please try again.");
     } finally {
       setRecording(false);
       setBusy(false);
@@ -448,12 +439,12 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: "#ef4444",
+    backgroundColor: Colors.error,
   },
   recText: {
     fontSize: 14,
     fontFamily: FontFamily.extrabold,
-    color: "#ef4444",
+    color: Colors.error,
     letterSpacing: 2,
   },
   cameraWrap: {

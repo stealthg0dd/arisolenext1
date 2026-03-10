@@ -1,8 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useCallback, useState } from "react";
-import { Alert, Pressable, Share, StyleSheet, Text, View } from "react-native";
+import { Pressable, Share, StyleSheet, Text, View } from "react-native";
 
 import { Colors, FontFamily } from "@/constants/Colors";
+import { useToast } from "@/contexts/ToastContext";
 import { getReferralCode } from "@/services/referral";
 
 type Props = {
@@ -17,6 +18,7 @@ const SHARE_MESSAGE =
  */
 export function ReferralShareCard({ userId }: Props) {
   const [loading, setLoading] = useState(false);
+  const toast = useToast();
 
   const handleShare = useCallback(async () => {
     setLoading(true);
@@ -25,11 +27,11 @@ export function ReferralShareCard({ userId }: Props) {
       const message = SHARE_MESSAGE.replace("{CODE}", code);
       await Share.share({ message, title: "Arisole Referral" });
     } catch (err) {
-      Alert.alert("Share failed", (err as Error).message ?? "Please try again.");
+      toast.showError((err as Error).message ?? "Please try again.");
     } finally {
       setLoading(false);
     }
-  }, [userId]);
+  }, [userId, toast]);
 
   return (
     <View style={styles.card}>

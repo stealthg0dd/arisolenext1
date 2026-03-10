@@ -4,7 +4,6 @@ import { makeRedirectUri } from "expo-auth-session";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
-  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -16,6 +15,7 @@ import {
 } from "react-native";
 
 import { Colors, FontFamily } from "@/constants/Colors";
+import { useToast } from "@/contexts/ToastContext";
 import { supabase } from "@/lib/supabase";
 
 WebBrowser.maybeCompleteAuthSession();
@@ -25,6 +25,7 @@ export default function SignInScreen() {
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const router = useRouter();
+  const toast = useToast();
 
   const onSignIn = async () => {
     setBusy(true);
@@ -32,7 +33,7 @@ export default function SignInScreen() {
     setBusy(false);
 
     if (error) {
-      Alert.alert("Sign in failed", error.message);
+      toast.showError(error.message);
     } else {
       router.replace("/(tabs)");
     }
@@ -49,7 +50,7 @@ export default function SignInScreen() {
 
     if (error || !data?.url) {
       setBusy(false);
-      Alert.alert("Google sign-in failed", error?.message ?? "No auth URL returned.");
+      toast.showError(error?.message ?? "No auth URL returned.");
       return;
     }
 
@@ -77,7 +78,7 @@ export default function SignInScreen() {
         }
       }
     } catch (err: unknown) {
-      Alert.alert("Authentication Error", (err as Error).message);
+      toast.showError((err as Error).message);
     } finally {
       setBusy(false);
     }

@@ -2,7 +2,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
-  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -14,6 +13,7 @@ import {
 } from "react-native";
 
 import { Colors, FontFamily } from "@/constants/Colors";
+import { useToast } from "@/contexts/ToastContext";
 import { supabase } from "@/lib/supabase";
 
 export default function SignUpScreen() {
@@ -22,36 +22,41 @@ export default function SignUpScreen() {
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const router = useRouter();
+  const toast = useToast();
 
   const onSignUp = async () => {
     setBusy(true);
-
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { data: { username } }
-    });
-
-    if (error) {
-      setBusy(false);
-      Alert.alert("Sign up failed", error.message);
-      return;
-    }
-
-    if (data.user) {
-      await supabase.from("user_profiles").upsert({
-        id: data.user.id,
-        username: username || email.split("@")[0],
-        avatar: null,
-        level: 1,
-        points: 0,
-        streak_days: 0
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { data: { username } }
       });
-    }
 
-    setBusy(false);
-    Alert.alert("Account created", "Check your email if confirmation is required.");
-    router.replace("/(tabs)");
+      if (error) {
+        toast.showError(error.message);
+        return;
+      }
+
+      if (data.user) {
+        const { error: profileError } = await supabase.from("user_profiles").upsert({
+          id: data.user.id,
+          username: username || email.split("@")[0],
+          avatar: null,
+          level: 1,
+          points: 0,
+          streak_days: 0
+        });
+        if (profileError) toast.showError(profileError.message);
+      }
+
+      toast.showSuccess("Account created. Check your email if confirmation is required.");
+      router.replace("/(tabs)");
+    } catch (err: unknown) {
+      toast.showError((err as Error).message ?? "Sign up failed.");
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (

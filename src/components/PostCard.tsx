@@ -2,6 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useVideoPlayer, VideoView } from "expo-video";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
+import { Colors, FontFamily } from "@/constants/Colors";
 import { FeedPost } from "@/types/database";
 
 type Props = {
@@ -39,12 +40,12 @@ export function PostCard({ post, onLike, onCommentPress }: Props) {
 
       <View style={styles.actions}>
         <Pressable style={styles.actionButton} onPress={() => onLike(post)}>
-          <Ionicons name={post.isLikedByMe ? "heart" : "heart-outline"} size={22} color={post.isLikedByMe ? "#E11D48" : "#111827"} />
+          <Ionicons name={post.isLikedByMe ? "heart" : "heart-outline"} size={22} color={post.isLikedByMe ? Colors.like : Colors.textSecondary} />
           <Text style={styles.actionText}>{post.likes_count}</Text>
         </Pressable>
 
         <Pressable style={styles.actionButton} onPress={() => onCommentPress(post)}>
-          <Ionicons name="chatbubble-ellipses-outline" size={22} color="#111827" />
+          <Ionicons name="chatbubble-ellipses-outline" size={22} color={Colors.textSecondary} />
           <Text style={styles.actionText}>Comment</Text>
         </Pressable>
       </View>
@@ -59,9 +60,9 @@ const styles = StyleSheet.create({
     marginBottom: 4,
     padding: 12,
     borderRadius: 14,
-    backgroundColor: "white",
+    backgroundColor: Colors.surfaceCard,
     borderWidth: 1,
-    borderColor: "#E5E7EB"
+    borderColor: Colors.surfaceBorder
   },
   header: {
     flexDirection: "row",
@@ -69,36 +70,38 @@ const styles = StyleSheet.create({
     marginBottom: 8
   },
   username: {
-    fontWeight: "700",
-    color: "#111827"
+    fontFamily: FontFamily.bold,
+    color: Colors.text
   },
   level: {
-    color: "#116530",
-    fontWeight: "700"
+    color: Colors.accent,
+    fontFamily: FontFamily.bold
   },
   video: {
     width: "100%",
     aspectRatio: 9 / 16,
-    backgroundColor: "#E5E7EB",
+    backgroundColor: Colors.background,
     borderRadius: 12,
     overflow: "hidden"
   },
   caption: {
     marginTop: 8,
-    color: "#374151"
+    color: Colors.textSecondary
   },
   aiBox: {
     marginTop: 8,
-    backgroundColor: "#ECFDF3",
+    backgroundColor: "rgba(0,255,157,0.1)",
     borderRadius: 10,
-    padding: 10
+    padding: 10,
+    borderWidth: 1,
+    borderColor: Colors.accent
   },
   aiHeadline: {
-    fontWeight: "700",
-    color: "#0E3B1E"
+    fontFamily: FontFamily.bold,
+    color: Colors.accent
   },
   aiMessage: {
-    color: "#1F2937",
+    color: Colors.text,
     marginTop: 2
   },
   actions: {
@@ -112,7 +115,7 @@ const styles = StyleSheet.create({
     gap: 6
   },
   actionText: {
-    color: "#111827",
-    fontWeight: "600"
+    color: Colors.textSecondary,
+    fontFamily: FontFamily.semibold
   }
 });

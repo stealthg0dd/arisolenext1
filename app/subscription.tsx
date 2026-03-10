@@ -1,9 +1,10 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { Colors, FontFamily } from "@/constants/Colors";
+import { useToast } from "@/contexts/ToastContext";
 import { MOCK_SUBSCRIPTION_PLANS } from "@/data/mockData";
 import { useAuth } from "@/providers/AuthProvider";
 import { useSubscriptionStatus } from "@/hooks/useSubscriptionStatus";
@@ -12,14 +13,12 @@ export default function SubscriptionScreen() {
   const router = useRouter();
   const { session } = useAuth();
   const { isPremium } = useSubscriptionStatus();
+  const toast = useToast();
   const [selectedPlan, setSelectedPlan] = useState<string | null>("annual");
 
   const onUpgrade = (planId: string) => {
     setSelectedPlan(planId);
-    Alert.alert(
-      "Coming Soon",
-      "Stripe checkout will be integrated here. For now, you can upgrade via the web app."
-    );
+    toast.showSuccess("Coming soon! Stripe checkout will be integrated here.");
   };
 
   return (
